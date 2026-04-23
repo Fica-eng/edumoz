@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · EduMoz — MEC Moçambique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --verde: #006B3C;
+    --verde-escuro: #004D2B;
+    --verde-claro: #00A65A;
+    --ouro: #FCDD09;
+    --preto: #0A0A0A;
+    --bg: #F3F4F0;
+    --sidebar: #0A1F14;
+    --branco: #FFFFFF;
+    --cinza: #6B7280;
+    --borda: #E5E7EB;
+    --perigo: #DC2626;
+    --aviso: #D97706;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--preto); display:flex; min-height:100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px; min-height: 100vh; background: var(--sidebar);
+    display: flex; flex-direction: column; position: fixed; left:0; top:0; bottom:0; z-index:50;
+  }
+  .sb-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sb-logo .strip { width:3px; height:28px; border-radius:2px; background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%); }
+  .sb-logo span { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#fff; }
+  .sb-logo small { font-size:10px; color:rgba(255,255,255,0.35); display:block; margin-top:1px; }
+
+  .sb-section { padding: 20px 12px 8px; }
+  .sb-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,0.25); padding: 0 8px; margin-bottom:6px; }
+  .sb-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; color: rgba(255,255,255,0.55); font-size:14px; font-weight:500;
+    cursor: pointer; text-decoration: none; transition: all .15s; margin-bottom:2px;
+  }
+  .sb-item:hover { background:rgba(255,255,255,0.06); color:#fff; }
+  .sb-item.active { background:rgba(0,166,90,0.2); color:var(--verde-claro); }
+  .sb-item .icon { font-size:16px; width:20px; text-align:center; }
+  .sb-item .badge { margin-left:auto; background:var(--verde-claro); color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:100px; }
+
+  .sb-user {
+    margin-top:auto; padding:16px 20px; border-top:1px solid rgba(255,255,255,0.06);
+    display:flex; align-items:center; gap:10px;
+  }
+  .sb-avatar { width:36px; height:36px; border-radius:10px; background:var(--verde); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:14px; }
+  .sb-user-name { font-size:13px; color:#fff; font-weight:500; }
+  .sb-user-role { font-size:11px; color:rgba(255,255,255,0.35); }
+
+  /* MAIN */
+  .main { margin-left:240px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+
+  .topbar {
+    background:#fff; border-bottom:1px solid var(--borda);
+    padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:40;
+  }
+  .topbar h1 { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
+  .topbar-right { display:flex; align-items:center; gap:16px; }
+  .filter-group { display:flex; gap:8px; }
+  .filter-btn {
+    padding:8px 14px; border-radius:8px; border:1px solid var(--borda);
+    font-size:13px; font-weight:500; cursor:pointer; background:#fff; color:var(--cinza);
+    transition:all .15s;
+  }
+  .filter-btn.on { background:var(--verde); color:#fff; border-color:var(--verde); }
+  .export-btn {
+    padding:9px 18px; background:var(--verde-escuro); color:#fff;
+    border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none;
+    display:flex; align-items:center; gap:6px; transition:background .15s;
+  }
+  .export-btn:hover { background:var(--verde); }
+
+  .content { padding:28px 32px; flex:1; }
+
+  /* KPI CARDS */
+  .kpi-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:24px; }
+  .kpi-card {
+    background:#fff; border-radius:14px; padding:22px 24px;
+    border:1px solid var(--borda); position:relative; overflow:hidden;
+  }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-card.verde::before { background:var(--verde); }
+  .kpi-card.ouro::before { background:var(--ouro); }
+  .kpi-card.vermelho::before { background:var(--perigo); }
+  .kpi-card.azul::before { background:#2563EB; }
+  .kpi-label { font-size:12px; font-weight:600; color:var(--cinza); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .kpi-val { font-family:'Playfair Display',serif; font-size:34px; font-weight:900; line-height:1; margin-bottom:8px; }
+  .kpi-change { font-size:13px; font-weight:500; }
+  .kpi-change.up { color:var(--verde-claro); }
+  .kpi-change.down { color:var(--perigo); }
+  .kpi-icon { position:absolute; right:20px; top:50%; transform:translateY(-50%); font-size:32px; opacity:.12; }
+
+  /* CHARTS */
+  .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
+  .chart-card { background:#fff; border-radius:14px; padding:24px; border:1px solid var(--borda); }
+  .chart-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+  .chart-title { font-size:16px; font-weight:600; }
+  .chart-sub { font-size:12px; color:var(--cinza); margin-top:2px; }
+  .chart-legend { display:flex; gap:16px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--cinza); }
+  .legend-dot { width:10px; height:10px; border-radius:50%; }
+
+  .charts-row2 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px; }
+
+  /* TABLE */
+  .table-card { background:#fff; border-radius:14px; padding:24px; border:1px solid var(--borda); margin-bottom:24px; }
+  .table-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .search-box {
+    padding:8px 14px; border:1px solid var(--borda); border-radius:8px;
+    font-size:13px; width:220px; outline:none; font-family:'DM Sans',sans-serif;
+  }
+  .search-box:focus { border-color:var(--verde); }
+  table { width:100%; border-collapse:collapse; }
+  th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--cinza); padding:10px 12px; text-align:left; border-bottom:1px solid var(--borda); }
+  td { padding:12px 12px; font-size:14px; border-bottom:1px solid rgba(0,0,0,0.04); }
+  tr:hover td { background:rgba(0,107,60,0.02); }
+  .status-pill { display:inline-block; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:600; }
+  .status-pill.bom { background:rgba(0,166,90,0.1); color:var(--verde-claro); }
+  .status-pill.med { background:rgba(217,119,6,0.1); color:var(--aviso); }
+  .status-pill.mau { background:rgba(220,38,38,0.1); color:var(--perigo); }
+
+  .prov-bar-bg { width:80px; height:6px; border-radius:3px; background:var(--borda); display:inline-block; vertical-align:middle; overflow:hidden; }
+  .prov-bar-fill { height:100%; border-radius:3px; background:var(--verde); }
+
+  /* EVASÃO CARDS */
+  .evasao-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .evasao-card { background:#fff; border-radius:14px; padding:20px; border:1px solid var(--borda); }
+  .evasao-prov { font-size:13px; font-weight:600; margin-bottom:4px; }
+  .evasao-num { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; color:var(--perigo); }
+  .evasao-lbl { font-size:11px; color:var(--cinza); }
+  .evasao-bar { height:4px; border-radius:2px; background:var(--borda); margin-top:12px; overflow:hidden; }
+  .evasao-fill { height:100%; border-radius:2px; background:var(--perigo); }
+
+  @media(max-width:900px) {
+    .sidebar { display:none; }
+    .main { margin-left:0; }
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .charts-row, .charts-row2 { grid-template-columns:1fr; }
+    .evasao-grid { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div>
+      <span>EduMoz</span>
+      <small>MEC · Moçambique</small>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="#" class="sb-item active"><span class="icon">📊</span> Dashboard</a>
+    <a href="#" class="sb-item"><span class="icon">📈</span> Relatórios <span class="badge">4</span></a>
+    <a href="#" class="sb-item"><span class="icon">🗺️</span> Mapa Nacional</a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="#" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+    <a href="#" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="#" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
+    <a href="#" class="sb-item"><span class="icon">📅</span> Frequência</a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="#" class="sb-item"><span class="icon">⚙️</span> Configurações</a>
+    <a href="#" class="sb-item"><span class="icon">🔒</span> Auditoria</a>
+  </div>
+
+  <div class="sb-user">
+    <div class="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name">Admin MEC</div>
+      <div class="sb-user-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Dashboard Nacional</h1>
+    </div>
+    <div class="topbar-right">
+      <div class="filter-group">
+        <button class="filter-btn" onclick="setAno(2023,this)">2023</button>
+        <button class="filter-btn" onclick="setAno(2024,this)">2024</button>
+        <button class="filter-btn on" onclick="setAno(2025,this)">2025</button>
+      </div>
+      <button class="export-btn" onclick="exportarPDF()">⬇ Exportar PDF</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card verde">
+        <div class="kpi-label">Total de Alunos</div>
+        <div class="kpi-val" id="kpi-alunos">6.2M</div>
+        <div class="kpi-change up" id="kpi-alunos-change">↑ 8.3% vs. ano anterior</div>
+        <div class="kpi-icon">👨‍🎓</div>
+      </div>
+      <div class="kpi-card ouro">
+        <div class="kpi-label">Taxa de Aprovação</div>
+        <div class="kpi-val" id="kpi-aprovacao">78.4%</div>
+        <div class="kpi-change up" id="kpi-apr-change">↑ 2.1% vs. ano anterior</div>
+        <div class="kpi-icon">✅</div>
+      </div>
+      <div class="kpi-card vermelho">
+        <div class="kpi-label">Taxa de Evasão</div>
+        <div class="kpi-val" id="kpi-evasao">12.7%</div>
+        <div class="kpi-change down" id="kpi-eva-change">↓ 1.4% vs. ano anterior</div>
+        <div class="kpi-icon">⚠️</div>
+      </div>
+      <div class="kpi-card azul">
+        <div class="kpi-label">Escolas Registadas</div>
+        <div class="kpi-val" id="kpi-escolas">8 247</div>
+        <div class="kpi-change up" id="kpi-esc-change">↑ 143 novas este ano</div>
+        <div class="kpi-icon">🏫</div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Evolução de Matrículas por Ano</div>
+            <div class="chart-sub">Total nacional 2019–2025</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#006B3C;"></div> Masculino</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#FCDD09;"></div> Feminino</div>
+          </div>
+        </div>
+        <canvas id="chart-matriculas" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Distribuição por Género</div>
+            <div class="chart-sub">Ano lectivo 2025</div>
+          </div>
+        </div>
+        <canvas id="chart-genero" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-row2">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Taxa de Aprovação</div>
+            <div class="chart-sub">Por nível de ensino</div>
+          </div>
+        </div>
+        <canvas id="chart-aprovacao" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Ratio Prof./Aluno</div>
+            <div class="chart-sub">Por província</div>
+          </div>
+        </div>
+        <canvas id="chart-ratio" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Causas de Evasão</div>
+            <div class="chart-sub">Distribuição nacional</div>
+          </div>
+        </div>
+        <canvas id="chart-evasao" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <div class="chart-title">Desempenho por Província</div>
+          <div class="chart-sub" style="margin-top:4px;">Matrículas, aprovação e evasão — 2025</div>
+        </div>
+        <input class="search-box" placeholder="Pesquisar província..." oninput="filtrarTabela(this.value)">
+      </div>
+      <table id="tabela-provincias">
+        <thead>
+          <tr>
+            <th>Província</th>
+            <th>Matrículas</th>
+            <th>Taxa Aprovação</th>
+            <th>Taxa Evasão</th>
+            <th>Escolas</th>
+            <th>Professores</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-provincias"></tbody>
+      </table>
+    </div>
+
+    <!-- EVASÃO -->
+    <div style="margin-bottom:16px;">
+      <div class="chart-title">Monitorização de Evasão por Província</div>
+      <div class="chart-sub" style="margin-top:4px;color:var(--cinza);font-size:13px;">Requer atenção prioritária</div>
+    </div>
+    <div class="evasao-grid" id="evasao-grid"></div>
+
+  </div>
+</main>
+
+<script>
+// DATA
+var dados = {
+  2025: {
+    alunos:'6.2M', aprovacao:'78.4%', evasao:'12.7%', escolas:'8 247',
+    aChange:'↑ 8.3% vs. ano anterior', apChange:'↑ 2.1% vs. ano anterior',
+    evChange:'↓ 1.4% vs. ano anterior', esChange:'↑ 143 novas este ano',
+    matriculasM:[2100,2200,2350,2400,2500,2700,2900],
+    matriculasF:[1900,2050,2150,2300,2400,2550,2800],
+  },
+  2024: {
+    alunos:'5.7M', aprovacao:'76.3%', evasao:'14.1%', escolas:'8 104',
+    aChange:'↑ 6.1% vs. ano anterior', apChange:'↑ 1.8% vs. ano anterior',
+    evChange:'↓ 0.8% vs. ano anterior', esChange:'↑ 112 novas',
+    matriculasM:[2100,2200,2350,2400,2500,2700,null],
+    matriculasF:[1900,2050,2150,2300,2400,2550,null],
+  },
+  2023: {
+    alunos:'5.4M', aprovacao:'74.5%', evasao:'14.9%', escolas:'7 992',
+    aChange:'↑ 4.5% vs. ano anterior', apChange:'↑ 0.9% vs. ano anterior',
+    evChange:'↑ 0.3% vs. ano anterior', esChange:'↑ 89 novas',
+    matriculasM:[2100,2200,2350,2400,2500,null,null],
+    matriculasF:[1900,2050,2150,2300,2400,null,null],
+  }
+};
+
+var provincias = [
+  {nome:'Maputo Cidade',  mat:890000, apr:86, eva:8,  esc:312, prof:14200, estado:'bom'},
+  {nome:'Maputo Prov.',   mat:620000, apr:82, eva:10, esc:498, prof:11300, estado:'bom'},
+  {nome:'Gaza',           mat:480000, apr:76, eva:13, esc:624, prof:9100,  estado:'med'},
+  {nome:'Inhambane',      mat:420000, apr:74, eva:15, esc:712, prof:7800,  estado:'med'},
+  {nome:'Sofala',         mat:550000, apr:73, eva:14, esc:698, prof:9800,  estado:'med'},
+  {nome:'Manica',         mat:380000, apr:71, eva:16, esc:586, prof:6700,  estado:'mau'},
+  {nome:'Tete',           mat:510000, apr:70, eva:17, esc:742, prof:8900,  estado:'mau'},
+  {nome:'Zambézia',       mat:720000, apr:69, eva:19, esc:980, prof:11200, estado:'mau'},
+  {nome:'Nampula',        mat:880000, apr:72, eva:18, esc:1102,prof:13400, estado:'mau'},
+  {nome:'Cabo Delgado',   mat:410000, apr:68, eva:22, esc:698, prof:6200,  estado:'mau'},
+  {nome:'Niassa',         mat:310000, apr:66, eva:21, esc:512, prof:4800,  estado:'mau'},
+];
+
+var anoAtual = 2025;
+
+function setAno(ano, el) {
+  anoAtual = ano;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  var d = dados[ano];
+  document.getElementById('kpi-alunos').textContent = d.alunos;
+  document.getElementById('kpi-aprovacao').textContent = d.aprovacao;
+  document.getElementById('kpi-evasao').textContent = d.evasao;
+  document.getElementById('kpi-escolas').textContent = d.escolas;
+  document.getElementById('kpi-alunos-change').textContent = d.aChange;
+  document.getElementById('kpi-apr-change').textContent = d.apChange;
+  document.getElementById('kpi-eva-change').textContent = d.evChange;
+  document.getElementById('kpi-esc-change').textContent = d.esChange;
+  chartMatriculas.data.datasets[0].data = d.matriculasM;
+  chartMatriculas.data.datasets[1].data = d.matriculasF;
+  chartMatriculas.update();
+}
+
+// CHART: MATRÍCULAS
+var anos = ['2019','2020','2021','2022','2023','2024','2025'];
+var ctxM = document.getElementById('chart-matriculas').getContext('2d');
+var chartMatriculas = new Chart(ctxM, {
+  type:'line',
+  data: {
+    labels: anos,
+    datasets: [
+      {label:'Masculino', data: dados[2025].matriculasM, borderColor:'#006B3C', backgroundColor:'rgba(0,107,60,0.08)', tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#006B3C'},
+      {label:'Feminino',  data: dados[2025].matriculasF, borderColor:'#FCDD09', backgroundColor:'rgba(252,221,9,0.08)',  tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#FCDD09'},
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{family:'DM Sans',size:12}}},
+      y:{grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{family:'DM Sans',size:12}, callback:v=>v+'k'}}
+    }
+  }
+});
+
+// CHART: GÉNERO
+var ctxG = document.getElementById('chart-genero').getContext('2d');
+new Chart(ctxG, {
+  type:'doughnut',
+  data:{
+    labels:['Masculino','Feminino'],
+    datasets:[{data:[51.2,48.8], backgroundColor:['#006B3C','#FCDD09'], borderWidth:0, hoverOffset:6}]
+  },
+  options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'bottom', labels:{font:{family:'DM Sans',size:12}, padding:16}}}}
+});
+
+// CHART: APROVAÇÃO
+var ctxA = document.getElementById('chart-aprovacao').getContext('2d');
+new Chart(ctxA, {
+  type:'bar',
+  data:{
+    labels:['EP1','EP2','ESG1','ESG2','IPEME'],
+    datasets:[{data:[82,76,74,70,68], backgroundColor:['#006B3C','#00A65A','#FCDD09','#D97706','#DC2626'], borderRadius:6, borderSkipped:false}]
+  },
+  options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}},y:{ticks:{callback:v=>v+'%',font:{family:'DM Sans',size:11}},max:100,grid:{color:'rgba(0,0,0,0.05)'}}}}
+});
+
+// CHART: RATIO
+var ctxR = document.getElementById('chart-ratio').getContext('2d');
+new Chart(ctxR, {
+  type:'bar',
+  data:{
+    labels:['Maputo C.','Gaza','Sofala','Nampula','Zambézia','Niassa'],
+    datasets:[{data:[42,48,52,58,61,67], backgroundColor:'rgba(0,107,60,0.15)', borderColor:'#006B3C', borderWidth:1.5, borderRadius:4}]
+  },
+  options:{indexAxis:'y', responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{family:'DM Sans',size:11},callback:v=>v+':1'}},y:{ticks:{font:{family:'DM Sans',size:11}}},grid:{display:false}}}
+});
+
+// CHART: EVASÃO
+var ctxE = document.getElementById('chart-evasao').getContext('2d');
+new Chart(ctxE, {
+  type:'doughnut',
+  data:{
+    labels:['Pobreza familiar','Gravidez precoce','Distância','Trabalho infantil','Outros'],
+    datasets:[{data:[38,22,18,14,8], backgroundColor:['#DC2626','#D97706','#2563EB','#7C3AED','#6B7280'], borderWidth:0}]
+  },
+  options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'bottom', labels:{font:{family:'DM Sans',size:10}, padding:10, boxWidth:10}}}}
+});
+
+// TABLE
+function renderTabela(filtro) {
+  var tbody = document.getElementById('tbody-provincias');
+  tbody.innerHTML = '';
+  provincias.filter(p=>!filtro||p.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(function(p) {
+    var pct = Math.round(p.apr);
+    var row = document.createElement('tr');
+    row.innerHTML =
+      '<td style="font-weight:600;">'+p.nome+'</td>'+
+      '<td>'+p.mat.toLocaleString('pt-PT')+'</td>'+
+      '<td><span style="font-weight:600;color:'+(p.apr>=80?'#00A65A':p.apr>=72?'#D97706':'#DC2626')+'">'+p.apr+'%</span> <div class="prov-bar-bg"><div class="prov-bar-fill" style="width:'+pct+'%;background:'+(p.apr>=80?'#00A65A':p.apr>=72?'#D97706':'#DC2626')+';"></div></div></td>'+
+      '<td style="color:'+(p.eva>18?'#DC2626':p.eva>13?'#D97706':'#6B7280')+'">'+p.eva+'%</td>'+
+      '<td>'+p.esc.toLocaleString('pt-PT')+'</td>'+
+      '<td>'+p.prof.toLocaleString('pt-PT')+'</td>'+
+      '<td><span class="status-pill '+p.estado+'">'+(p.estado==='bom'?'Bom':p.estado==='med'?'Médio':'Crítico')+'</span></td>';
+    tbody.appendChild(row);
+  });
+}
+
+function filtrarTabela(v) { renderTabela(v); }
+renderTabela('');
+
+// EVASÃO GRID
+function renderEvasao() {
+  var grid = document.getElementById('evasao-grid');
+  grid.innerHTML = '';
+  var criticas = provincias.filter(p=>p.estado==='mau').slice(0,6);
+  criticas.forEach(function(p) {
+    var pct = Math.round(p.eva * 4);
+    var div = document.createElement('div');
+    div.className = 'evasao-card';
+    div.innerHTML =
+      '<div class="evasao-prov">'+p.nome+'</div>'+
+      '<div class="evasao-num">'+p.eva+'%</div>'+
+      '<div class="evasao-lbl">taxa de evasão escolar</div>'+
+      '<div class="evasao-bar"><div class="evasao-fill" style="width:'+pct+'%"></div></div>';
+    grid.appendChild(div);
+  });
+}
+renderEvasao();
+
+function exportarPDF() {
+  alert('Em ambiente de produção, esta função gera um PDF completo com todos os gráficos e dados filtrados. Requer integração com jsPDF ou exportação server-side.');
+}
+</script>
+</body>
+</html>

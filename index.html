@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduMoz — Sistema de Administração Educacional · MEC Moçambique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #006B3C;
+    --verde-escuro: #004D2B;
+    --verde-claro: #00A65A;
+    --ouro: #FCDD09;
+    --ouro-escuro: #D4B800;
+    --preto: #0A0A0A;
+    --branco: #FAFAF7;
+    --cinza: #6B7280;
+    --cinza-claro: #F3F4F0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--branco);
+    color: var(--preto);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(250,250,247,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,107,60,0.12);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; }
+  .nav-logo .flag-strip {
+    width: 4px; height: 36px; border-radius: 2px;
+    background: linear-gradient(to bottom, var(--verde) 33%, var(--ouro) 33%, var(--ouro) 66%, #CC0000 66%);
+  }
+  .nav-logo span { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--verde-escuro); letter-spacing: -0.5px; }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { text-decoration: none; color: var(--cinza); font-size: 14px; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--verde); }
+  .nav-cta {
+    background: var(--verde); color: #fff; padding: 10px 22px;
+    border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: background .2s;
+  }
+  .nav-cta:hover { background: var(--verde-escuro); color: #fff; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(0,107,60,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse at 10% 80%, rgba(252,221,9,0.08) 0%, transparent 50%);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,107,60,0.08); border: 1px solid rgba(0,107,60,0.2);
+    padding: 6px 14px; border-radius: 100px; margin-bottom: 28px;
+    font-size: 12px; font-weight: 600; color: var(--verde); letter-spacing: .05em; text-transform: uppercase;
+    width: fit-content;
+  }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--verde-claro); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(44px, 6vw, 82px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    max-width: 700px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 em { font-style: normal; color: var(--verde); }
+  .hero h1 .accent-line {
+    display: inline-block;
+    border-bottom: 4px solid var(--ouro);
+    padding-bottom: 2px;
+  }
+
+  .hero-sub {
+    font-size: 18px; font-weight: 300; color: var(--cinza);
+    max-width: 520px; line-height: 1.7; margin-bottom: 48px;
+  }
+
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--verde); color: #fff; padding: 16px 32px;
+    border-radius: 10px; font-size: 16px; font-weight: 600; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: transform .2s, background .2s;
+    box-shadow: 0 4px 20px rgba(0,107,60,0.3);
+  }
+  .btn-primary:hover { background: var(--verde-escuro); transform: translateY(-2px); }
+  .btn-secondary {
+    color: var(--verde); font-size: 16px; font-weight: 600; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    border-bottom: 2px solid var(--ouro); padding-bottom: 2px;
+  }
+  .btn-secondary:hover { color: var(--verde-escuro); }
+
+  .hero-stats {
+    display: flex; gap: 48px; margin-top: 64px; padding-top: 48px;
+    border-top: 1px solid rgba(0,107,60,0.1);
+    flex-wrap: wrap;
+  }
+  .stat-item { }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; font-weight: 900; color: var(--verde-escuro);
+    line-height: 1;
+  }
+  .stat-label { font-size: 13px; color: var(--cinza); margin-top: 4px; font-weight: 500; }
+
+  /* Floating card */
+  .hero-card {
+    position: absolute; right: 60px; top: 50%; transform: translateY(-50%);
+    background: #fff; border-radius: 20px; padding: 28px 32px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,107,60,0.08);
+    width: 320px;
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(-50%) translateY(0)} 50%{transform:translateY(-50%) translateY(-12px)} }
+  .card-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--cinza); margin-bottom: 16px; }
+  .mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; margin-bottom: 20px; }
+  .bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--verde-claro); opacity: .3; transition: opacity .2s; }
+  .bar.active { opacity: 1; background: var(--verde); }
+  .card-kpi { display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--cinza-claro); }
+  .kpi-item .kpi-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--verde-escuro); }
+  .kpi-item .kpi-lbl { font-size: 11px; color: var(--cinza); }
+  .kpi-badge { background: rgba(0,166,90,0.1); color: var(--verde-claro); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
+
+  /* MODULES */
+  .section { padding: 100px 60px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--verde); margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 4vw, 52px); font-weight: 900; line-height: 1.1;
+    letter-spacing: -1px; max-width: 600px; margin-bottom: 16px;
+  }
+  .section-sub { font-size: 17px; color: var(--cinza); font-weight: 300; max-width: 480px; line-height: 1.7; margin-bottom: 56px; }
+
+  .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .module-card {
+    border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 28px;
+    background: #fff; transition: transform .2s, box-shadow .2s; cursor: pointer;
+    text-decoration: none; color: inherit; display: block;
+  }
+  .module-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); border-color: rgba(0,107,60,0.2); }
+  .module-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 16px;
+  }
+  .module-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .module-card p { font-size: 14px; color: var(--cinza); line-height: 1.6; margin-bottom: 20px; }
+  .module-features { list-style: none; }
+  .module-features li { font-size: 13px; color: var(--cinza); padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+  .module-features li::before { content: '✓'; color: var(--verde-claro); font-weight: 700; font-size: 12px; }
+
+  .priority-tag {
+    display: inline-block; background: rgba(252,221,9,0.2); color: #8B7200;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    padding: 3px 10px; border-radius: 100px; margin-bottom: 12px;
+  }
+
+  /* REPORTS SECTION */
+  .reports-section { background: var(--verde-escuro); color: #fff; padding: 100px 60px; }
+  .reports-section .section-title { color: #fff; max-width: 100%; }
+  .reports-section .section-sub { color: rgba(255,255,255,0.6); }
+  .reports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 48px; }
+  .report-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 24px; transition: background .2s;
+  }
+  .report-card:hover { background: rgba(255,255,255,0.1); }
+  .report-number { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: var(--ouro); line-height: 1; margin-bottom: 8px; }
+  .report-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .report-card p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ROLES */
+  .roles-section { padding: 100px 60px; background: var(--cinza-claro); }
+  .roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 48px; }
+  .role-card {
+    background: #fff; border-radius: 16px; padding: 28px 24px;
+    border: 2px solid transparent; transition: border-color .2s;
+  }
+  .role-card:hover { border-color: var(--verde-claro); }
+  .role-avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+  .role-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .role-card p { font-size: 13px; color: var(--cinza); line-height: 1.5; }
+
+  /* CTA */
+  .cta-section {
+    padding: 120px 60px; text-align: center;
+    background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--verde) 100%);
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(252,221,9,0.15) 0%, transparent 60%);
+  }
+  .cta-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px); font-weight: 900; color: #fff;
+    letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; position: relative;
+  }
+  .cta-section p { font-size: 18px; color: rgba(255,255,255,0.7); margin-bottom: 40px; font-weight: 300; position: relative; }
+  .cta-section .btn-primary { background: var(--ouro); color: var(--verde-escuro); box-shadow: 0 8px 30px rgba(252,221,9,0.4); position: relative; }
+  .cta-section .btn-primary:hover { background: #fff; }
+
+  /* FOOTER */
+  footer {
+    background: var(--preto); color: rgba(255,255,255,0.5);
+    padding: 48px 60px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: gap;
+    gap: 16px;
+  }
+  footer .logo-f { font-family: 'Playfair Display', serif; color: #fff; font-size: 20px; font-weight: 700; }
+  footer p { font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; }
+  footer a:hover { color: var(--verde-claro); }
+
+  @media(max-width:768px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 20px 60px; }
+    .hero-card { display: none; }
+    .section { padding: 60px 20px; }
+    .reports-section, .roles-section, .cta-section { padding: 60px 20px; }
+    footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="flag-strip"></div>
+    <span>EduMoz</span>
+  </div>
+  <div class="nav-links">
+    <a href="#modulos">Módulos</a>
+    <a href="#relatorios">Relatórios</a>
+    <a href="#perfis">Perfis</a>
+    <a href="pages/dashboard.html">Demo</a>
+  </div>
+  <a href="pages/dashboard.html" class="nav-cta">Ver Dashboard →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge">Sistema oficial para o MEC · Moçambique</div>
+  <h1>
+    Educação<br>
+    <em><span class="accent-line">mais inteligente</span></em><br>
+    para Moçambique
+  </h1>
+  <p class="hero-sub">
+    Plataforma integrada de administração educacional — matrículas, desempenho, evasão e recursos humanos, em tempo real para todas as províncias.
+  </p>
+  <div class="hero-actions">
+    <a href="pages/dashboard.html" class="btn-primary">
+      <span>→</span> Explorar o Dashboard
+    </a>
+    <a href="#modulos" class="btn-secondary">Ver módulos ↓</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">11</div>
+      <div class="stat-label">Províncias cobertas</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">6M+</div>
+      <div class="stat-label">Alunos monitorizados</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">8 000+</div>
+      <div class="stat-label">Escolas integradas</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">99.5%</div>
+      <div class="stat-label">Disponibilidade garantida</div>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="card-header">Matrículas 2025 — Nacional</div>
+    <div class="mini-chart">
+      <div class="bar" style="height:40%"></div>
+      <div class="bar" style="height:55%"></div>
+      <div class="bar" style="height:45%"></div>
+      <div class="bar" style="height:70%"></div>
+      <div class="bar" style="height:60%"></div>
+      <div class="bar" style="height:85%"></div>
+      <div class="bar active" style="height:100%"></div>
+    </div>
+    <div class="card-kpi">
+      <div class="kpi-item">
+        <div class="kpi-val">6.2M</div>
+        <div class="kpi-lbl">Total alunos</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-val">↑ 8.3%</div>
+        <div class="kpi-lbl">vs. 2024</div>
+      </div>
+      <div class="kpi-badge">Ao vivo</div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="section" id="modulos">
+  <div class="section-label">Módulos do Sistema</div>
+  <h2 class="section-title">Tudo o que o MEC precisa, num só lugar</h2>
+  <p class="section-sub">Da matrícula ao boletim, da frequência ao relatório provincial — integrado e auditável.</p>
+
+  <div class="modules-grid">
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="priority-tag">⭐ Prioridade máxima</div>
+      <div class="module-icon" style="background:rgba(0,107,60,0.1);">📊</div>
+      <h3>Relatórios e Estatísticas</h3>
+      <p>Dashboards em tempo real com KPIs nacionais, comparativos regionais e exportação para PDF/Excel.</p>
+      <ul class="module-features">
+        <li>Matrículas por género, série, província</li>
+        <li>Taxa de aprovação e reprovação</li>
+        <li>Monitorização de evasão escolar</li>
+        <li>Evolução histórica ano a ano</li>
+      </ul>
+    </a>
+
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="module-icon" style="background:rgba(252,221,9,0.15);">🏫</div>
+      <h3>Gestão de Escolas</h3>
+      <p>Cadastro completo com estrutura distrital, provincial e tipo de instituição.</p>
+      <ul class="module-features">
+        <li>Cadastro e geolocalização</li>
+        <li>Estrutura distrital / provincial</li>
+        <li>Tipos: primária, secundária, IPEME</li>
+        <li>Dados de contacto atualizados</li>
+      </ul>
+    </a>
+
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="module-icon" style="background:rgba(0,166,90,0.1);">👨‍🎓</div>
+      <h3>Gestão de Alunos</h3>
+      <p>Matrículas, transferências, histórico académico e monitorização de status.</p>
+      <ul class="module-features">
+        <li>Matrícula e documentação</li>
+        <li>Transferências entre escolas</li>
+        <li>Histórico e boletim digital</li>
+        <li>Status: ativo, evadido, transferido</li>
+      </ul>
+    </a>
+
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="module-icon" style="background:rgba(204,0,0,0.08);">👩‍🏫</div>
+      <h3>Gestão de Professores</h3>
+      <p>Cadastro, qualificações, alocação por disciplina e monitorização de necessidades.</p>
+      <ul class="module-features">
+        <li>Cadastro e certificações</li>
+        <li>Alocação por disciplina/escola</li>
+        <li>Ratio professor/aluno</li>
+        <li>Carências por região</li>
+      </ul>
+    </a>
+
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="module-icon" style="background:rgba(0,107,60,0.08);">📝</div>
+      <h3>Notas e Avaliações</h3>
+      <p>Lançamento de notas, cálculo de médias, boletim escolar e classificações finais.</p>
+      <ul class="module-features">
+        <li>Notas por disciplina e trimestre</li>
+        <li>Cálculo automático de médias</li>
+        <li>Boletim digital imprimível</li>
+        <li>Aprovação / reprovação automática</li>
+      </ul>
+    </a>
+
+    <a href="pages/dashboard.html" class="module-card">
+      <div class="module-icon" style="background:rgba(252,221,9,0.12);">📅</div>
+      <h3>Frequência e Assiduidade</h3>
+      <p>Registo de presenças, taxas de assiduidade e relatórios de faltas por escola.</p>
+      <ul class="module-features">
+        <li>Registo diário de presenças</li>
+        <li>Taxa de assiduidade por aluno</li>
+        <li>Alertas de faltas excessivas</li>
+        <li>Correlação com desempenho</li>
+      </ul>
+    </a>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="reports-section" id="relatorios">
+  <div class="section-label" style="color:rgba(255,255,255,0.4);">Relatórios & Análises</div>
+  <h2 class="section-title" style="color:#fff;max-width:600px;">Dados que orientam decisões nacionais</h2>
+  <p class="section-sub">Cada relatório é exportável em PDF e Excel, com filtros por período, escola e região.</p>
+
+  <div class="reports-grid">
+    <div class="report-card">
+      <div class="report-number">01</div>
+      <h4>Estatísticas de Matrículas</h4>
+      <p>Total por escola, região, género, série — com evolução temporal e taxa de crescimento.</p>
+    </div>
+    <div class="report-card">
+      <div class="report-number">02</div>
+      <h4>Desempenho Académico</h4>
+      <p>Taxa de aprovação/reprovação por escola, médias por disciplina, comparativos regionais.</p>
+    </div>
+    <div class="report-card">
+      <div class="report-number">03</div>
+      <h4>Evasão Escolar</h4>
+      <p>Taxa de evasão por escola e região, causas identificadas, evolução e mapa geográfico.</p>
+    </div>
+    <div class="report-card">
+      <div class="report-number">04</div>
+      <h4>Recursos Humanos</h4>
+      <p>Ratio professor/aluno, professores qualificados, necessidades de contratação por área.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section class="roles-section" id="perfis">
+  <div class="section-label">Perfis de Acesso</div>
+  <h2 class="section-title">Cada actor, com o seu nível de acesso</h2>
+  <p class="section-sub">Hierarquia de permissões clara, auditável e conforme as normas do MEC.</p>
+
+  <div class="roles-grid">
+    <div class="role-card">
+      <div class="role-avatar" style="background:rgba(0,107,60,0.1);">🏛️</div>
+      <h4>Admin MEC</h4>
+      <p>Acesso total ao sistema. Gere utilizadores, visualiza dados nacionais e gera relatórios completos.</p>
+    </div>
+    <div class="role-card">
+      <div class="role-avatar" style="background:rgba(0,107,60,0.08);">🗺️</div>
+      <h4>Coordenador Regional</h4>
+      <p>Acessa dados da sua província ou distrito. Monitoriza evasão, matrículas e desempenho regional.</p>
+    </div>
+    <div class="role-card">
+      <div class="role-avatar" style="background:rgba(252,221,9,0.15);">🏫</div>
+      <h4>Diretor de Escola</h4>
+      <p>Visualiza apenas os dados da sua escola. Lança informações, gera boletins e relatórios locais.</p>
+    </div>
+    <div class="role-card">
+      <div class="role-avatar" style="background:rgba(0,166,90,0.1);">👩‍🏫</div>
+      <h4>Professor</h4>
+      <p>Acessa apenas as suas turmas e disciplinas. Lança notas e frequência dos seus alunos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Pronto para transformar<br>a educação em Moçambique?</h2>
+  <p>Sistema desenvolvido para o Ministério da Educação e Cultura — seguro, escalável e em português.</p>
+  <a href="pages/dashboard.html" class="btn-primary" style="font-size:18px; padding:18px 40px;">
+    → Aceder ao Dashboard Demo
+  </a>
+</section>
+
+<footer>
+  <div>
+    <div class="logo-f">EduMoz</div>
+    <p style="margin-top:8px;">Sistema de Administração Educacional — República de Moçambique</p>
+  </div>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;">
+    <a href="pages/dashboard.html">Dashboard</a>
+    <a href="#modulos">Módulos</a>
+    <a href="#relatorios">Relatórios</a>
+    <a href="#perfis">Perfis</a>
+  </div>
+  <p>© 2025 EduMoz · MEC Moçambique</p>
+</footer>
+
+</body>
+</html>
