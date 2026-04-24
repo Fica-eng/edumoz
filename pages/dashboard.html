@@ -334,75 +334,128 @@
 </main>
 
 <script>
-// DATA
-var dados = {
-  2025: {
-    alunos:'6.2M', aprovacao:'78.4%', evasao:'12.7%', escolas:'8 247',
-    aChange:'↑ 8.3% vs. ano anterior', apChange:'↑ 2.1% vs. ano anterior',
-    evChange:'↓ 1.4% vs. ano anterior', esChange:'↑ 143 novas este ano',
-    matriculasM:[2100,2200,2350,2400,2500,2700,2900],
-    matriculasF:[1900,2050,2150,2300,2400,2550,2800],
-  },
-  2024: {
-    alunos:'5.7M', aprovacao:'76.3%', evasao:'14.1%', escolas:'8 104',
-    aChange:'↑ 6.1% vs. ano anterior', apChange:'↑ 1.8% vs. ano anterior',
-    evChange:'↓ 0.8% vs. ano anterior', esChange:'↑ 112 novas',
-    matriculasM:[2100,2200,2350,2400,2500,2700,null],
-    matriculasF:[1900,2050,2150,2300,2400,2550,null],
-  },
-  2023: {
-    alunos:'5.4M', aprovacao:'74.5%', evasao:'14.9%', escolas:'7 992',
-    aChange:'↑ 4.5% vs. ano anterior', apChange:'↑ 0.9% vs. ano anterior',
-    evChange:'↑ 0.3% vs. ano anterior', esChange:'↑ 89 novas',
-    matriculasM:[2100,2200,2350,2400,2500,null,null],
-    matriculasF:[1900,2050,2150,2300,2400,null,null],
-  }
-};
-
-var provincias = [
-  {nome:'Maputo Cidade',  mat:890000, apr:86, eva:8,  esc:312, prof:14200, estado:'bom'},
-  {nome:'Maputo Prov.',   mat:620000, apr:82, eva:10, esc:498, prof:11300, estado:'bom'},
-  {nome:'Gaza',           mat:480000, apr:76, eva:13, esc:624, prof:9100,  estado:'med'},
-  {nome:'Inhambane',      mat:420000, apr:74, eva:15, esc:712, prof:7800,  estado:'med'},
-  {nome:'Sofala',         mat:550000, apr:73, eva:14, esc:698, prof:9800,  estado:'med'},
-  {nome:'Manica',         mat:380000, apr:71, eva:16, esc:586, prof:6700,  estado:'mau'},
-  {nome:'Tete',           mat:510000, apr:70, eva:17, esc:742, prof:8900,  estado:'mau'},
-  {nome:'Zambézia',       mat:720000, apr:69, eva:19, esc:980, prof:11200, estado:'mau'},
-  {nome:'Nampula',        mat:880000, apr:72, eva:18, esc:1102,prof:13400, estado:'mau'},
-  {nome:'Cabo Delgado',   mat:410000, apr:68, eva:22, esc:698, prof:6200,  estado:'mau'},
-  {nome:'Niassa',         mat:310000, apr:66, eva:21, esc:512, prof:4800,  estado:'mau'},
-];
-
+// ── API ────────────────────────────────────────────
+var API = 'https://edumoz-backend-production.up.railway.app';
 var anoAtual = 2025;
+var provincias = [];
+var chartMatriculas, chartGenero;
 
-function setAno(ano, el) {
-  anoAtual = ano;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
-  el.classList.add('on');
-  var d = dados[ano];
-  document.getElementById('kpi-alunos').textContent = d.alunos;
-  document.getElementById('kpi-aprovacao').textContent = d.aprovacao;
-  document.getElementById('kpi-evasao').textContent = d.evasao;
-  document.getElementById('kpi-escolas').textContent = d.escolas;
-  document.getElementById('kpi-alunos-change').textContent = d.aChange;
-  document.getElementById('kpi-apr-change').textContent = d.apChange;
-  document.getElementById('kpi-eva-change').textContent = d.evChange;
-  document.getElementById('kpi-esc-change').textContent = d.esChange;
-  chartMatriculas.data.datasets[0].data = d.matriculasM;
-  chartMatriculas.data.datasets[1].data = d.matriculasF;
-  chartMatriculas.update();
+// ── INDICADOR DE CARREGAMENTO ──────────────────────
+function setLoading(on) {
+  document.querySelectorAll('.kpi-val').forEach(function(el) {
+    if (on) el.style.opacity = '0.3';
+    else el.style.opacity = '1';
+  });
 }
 
-// CHART: MATRÍCULAS
-var anos = ['2019','2020','2021','2022','2023','2024','2025'];
+// ── CARREGAR KPIs DO DASHBOARD ─────────────────────
+function carregarDashboard(ano) {
+  setLoading(true);
+  fetch(API + '/api/dashboard?ano=' + ano)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var k = data.kpis;
+      // KPIs
+      var totalM = (k.total_alunos / 1000000).toFixed(1) + 'M';
+      document.getElementById('kpi-alunos').textContent = k.total_alunos > 0 ? totalM : '6.2M';
+      document.getElementById('kpi-aprovacao').textContent = k.taxa_aprovacao > 0 ? k.taxa_aprovacao + '%' : '78.4%';
+      document.getElementById('kpi-evasao').textContent = k.taxa_evasao > 0 ? k.taxa_evasao + '%' : '12.7%';
+      document.getElementById('kpi-escolas').textContent = k.total_escolas > 0 ? k.total_escolas.toLocaleString('pt-PT') : '8 247';
+      // Género
+      if (data.genero && chartGenero) {
+        var total = data.genero.masculino + data.genero.feminino;
+        if (total > 0) {
+          var pctM = ((data.genero.masculino / total) * 100).toFixed(1);
+          var pctF = ((data.genero.feminino  / total) * 100).toFixed(1);
+          chartGenero.data.datasets[0].data = [pctM, pctF];
+          chartGenero.update();
+        }
+      }
+      setLoading(false);
+    })
+    .catch(function() {
+      // Fallback para dados estáticos se API falhar
+      setLoading(false);
+    });
+}
+
+// ── CARREGAR EVOLUÇÃO DE MATRÍCULAS ───────────────
+function carregarEvolucao() {
+  fetch(API + '/api/dashboard/evolucao')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.evolucao || !data.evolucao.length) return;
+      var anos  = data.evolucao.map(function(e) { return e.ano_lectivo.toString(); });
+      var masc  = data.evolucao.map(function(e) { return Math.round(e.total_masculino / 1000); });
+      var fem   = data.evolucao.map(function(e) { return Math.round(e.total_feminino  / 1000); });
+      chartMatriculas.data.labels = anos;
+      chartMatriculas.data.datasets[0].data = masc;
+      chartMatriculas.data.datasets[1].data = fem;
+      chartMatriculas.update();
+    })
+    .catch(function() {});
+}
+
+// ── CARREGAR PROVÍNCIAS ───────────────────────────
+function carregarProvincias(ano) {
+  fetch(API + '/api/provincias?ano=' + ano)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.provincias || !data.provincias.length) return;
+      provincias = data.provincias.map(function(p) {
+        return {
+          nome:   p.nome,
+          mat:    p.total_alunos,
+          apr:    p.taxa_aprovacao,
+          eva:    p.taxa_evasao,
+          esc:    p.total_escolas,
+          prof:   p.total_professores,
+          estado: p.estado
+        };
+      });
+      renderTabela('');
+      renderEvasao();
+      actualizarChartRatio();
+    })
+    .catch(function() {
+      // Fallback dados estáticos
+      provincias = [
+        {nome:'Maputo Cidade', mat:890000, apr:86, eva:8,  esc:312,  prof:14200, estado:'bom'},
+        {nome:'Maputo Prov.',  mat:620000, apr:82, eva:10, esc:498,  prof:11300, estado:'bom'},
+        {nome:'Gaza',          mat:480000, apr:76, eva:13, esc:624,  prof:9100,  estado:'med'},
+        {nome:'Inhambane',     mat:420000, apr:74, eva:15, esc:712,  prof:7800,  estado:'med'},
+        {nome:'Sofala',        mat:550000, apr:73, eva:14, esc:698,  prof:9800,  estado:'med'},
+        {nome:'Manica',        mat:380000, apr:71, eva:16, esc:586,  prof:6700,  estado:'mau'},
+        {nome:'Tete',          mat:510000, apr:70, eva:17, esc:742,  prof:8900,  estado:'mau'},
+        {nome:'Zambézia',      mat:720000, apr:69, eva:19, esc:980,  prof:11200, estado:'mau'},
+        {nome:'Nampula',       mat:880000, apr:72, eva:18, esc:1102, prof:13400, estado:'mau'},
+        {nome:'Cabo Delgado',  mat:410000, apr:68, eva:22, esc:698,  prof:6200,  estado:'mau'},
+        {nome:'Niassa',        mat:310000, apr:66, eva:21, esc:512,  prof:4800,  estado:'mau'},
+      ];
+      renderTabela('');
+      renderEvasao();
+      actualizarChartRatio();
+    });
+}
+
+// ── MUDAR ANO ─────────────────────────────────────
+function setAno(ano, el) {
+  anoAtual = ano;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('on'); });
+  el.classList.add('on');
+  carregarDashboard(ano);
+  carregarProvincias(ano);
+}
+
+// ── CHARTS ────────────────────────────────────────
 var ctxM = document.getElementById('chart-matriculas').getContext('2d');
-var chartMatriculas = new Chart(ctxM, {
+chartMatriculas = new Chart(ctxM, {
   type:'line',
   data: {
-    labels: anos,
+    labels: ['2019','2020','2021','2022','2023','2024','2025'],
     datasets: [
-      {label:'Masculino', data: dados[2025].matriculasM, borderColor:'#006B3C', backgroundColor:'rgba(0,107,60,0.08)', tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#006B3C'},
-      {label:'Feminino',  data: dados[2025].matriculasF, borderColor:'#FCDD09', backgroundColor:'rgba(252,221,9,0.08)',  tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#FCDD09'},
+      {label:'Masculino', data:[2100,2200,2350,2400,2500,2700,2900], borderColor:'#006B3C', backgroundColor:'rgba(0,107,60,0.08)', tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#006B3C'},
+      {label:'Feminino',  data:[1900,2050,2150,2300,2400,2550,2800], borderColor:'#FCDD09', backgroundColor:'rgba(252,221,9,0.08)',  tension:.4, fill:true, pointRadius:4, pointBackgroundColor:'#FCDD09'},
     ]
   },
   options: {
@@ -410,14 +463,13 @@ var chartMatriculas = new Chart(ctxM, {
     plugins:{legend:{display:false}},
     scales:{
       x:{grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{family:'DM Sans',size:12}}},
-      y:{grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{family:'DM Sans',size:12}, callback:v=>v+'k'}}
+      y:{grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{family:'DM Sans',size:12}, callback:function(v){return v+'k';}}}
     }
   }
 });
 
-// CHART: GÉNERO
 var ctxG = document.getElementById('chart-genero').getContext('2d');
-new Chart(ctxG, {
+chartGenero = new Chart(ctxG, {
   type:'doughnut',
   data:{
     labels:['Masculino','Feminino'],
@@ -426,7 +478,6 @@ new Chart(ctxG, {
   options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'bottom', labels:{font:{family:'DM Sans',size:12}, padding:16}}}}
 });
 
-// CHART: APROVAÇÃO
 var ctxA = document.getElementById('chart-aprovacao').getContext('2d');
 new Chart(ctxA, {
   type:'bar',
@@ -434,21 +485,19 @@ new Chart(ctxA, {
     labels:['EP1','EP2','ESG1','ESG2','IPEME'],
     datasets:[{data:[82,76,74,70,68], backgroundColor:['#006B3C','#00A65A','#FCDD09','#D97706','#DC2626'], borderRadius:6, borderSkipped:false}]
   },
-  options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}},y:{ticks:{callback:v=>v+'%',font:{family:'DM Sans',size:11}},max:100,grid:{color:'rgba(0,0,0,0.05)'}}}}
+  options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}},y:{ticks:{callback:function(v){return v+'%';},font:{family:'DM Sans',size:11}},max:100,grid:{color:'rgba(0,0,0,0.05)'}}}}
 });
 
-// CHART: RATIO
 var ctxR = document.getElementById('chart-ratio').getContext('2d');
-new Chart(ctxR, {
+var chartRatio = new Chart(ctxR, {
   type:'bar',
   data:{
     labels:['Maputo C.','Gaza','Sofala','Nampula','Zambézia','Niassa'],
     datasets:[{data:[42,48,52,58,61,67], backgroundColor:'rgba(0,107,60,0.15)', borderColor:'#006B3C', borderWidth:1.5, borderRadius:4}]
   },
-  options:{indexAxis:'y', responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{family:'DM Sans',size:11},callback:v=>v+':1'}},y:{ticks:{font:{family:'DM Sans',size:11}}},grid:{display:false}}}
+  options:{indexAxis:'y', responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{family:'DM Sans',size:11},callback:function(v){return v+':1';}}},y:{ticks:{font:{family:'DM Sans',size:11}}}}}
 });
 
-// CHART: EVASÃO
 var ctxE = document.getElementById('chart-evasao').getContext('2d');
 new Chart(ctxE, {
   type:'doughnut',
@@ -459,50 +508,66 @@ new Chart(ctxE, {
   options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'bottom', labels:{font:{family:'DM Sans',size:10}, padding:10, boxWidth:10}}}}
 });
 
-// TABLE
+function actualizarChartRatio() {
+  if (!provincias.length) return;
+  var top6 = provincias.slice(0, 6);
+  chartRatio.data.labels = top6.map(function(p) { return p.nome.split(' ')[0]; });
+  chartRatio.data.datasets[0].data = top6.map(function(p) { return p.prof > 0 ? Math.round(p.mat / p.prof) : 0; });
+  chartRatio.update();
+}
+
+// ── TABELA ────────────────────────────────────────
 function renderTabela(filtro) {
   var tbody = document.getElementById('tbody-provincias');
   tbody.innerHTML = '';
-  provincias.filter(p=>!filtro||p.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(function(p) {
-    var pct = Math.round(p.apr);
-    var row = document.createElement('tr');
-    row.innerHTML =
-      '<td style="font-weight:600;">'+p.nome+'</td>'+
-      '<td>'+p.mat.toLocaleString('pt-PT')+'</td>'+
-      '<td><span style="font-weight:600;color:'+(p.apr>=80?'#00A65A':p.apr>=72?'#D97706':'#DC2626')+'">'+p.apr+'%</span> <div class="prov-bar-bg"><div class="prov-bar-fill" style="width:'+pct+'%;background:'+(p.apr>=80?'#00A65A':p.apr>=72?'#D97706':'#DC2626')+';"></div></div></td>'+
-      '<td style="color:'+(p.eva>18?'#DC2626':p.eva>13?'#D97706':'#6B7280')+'">'+p.eva+'%</td>'+
-      '<td>'+p.esc.toLocaleString('pt-PT')+'</td>'+
-      '<td>'+p.prof.toLocaleString('pt-PT')+'</td>'+
-      '<td><span class="status-pill '+p.estado+'">'+(p.estado==='bom'?'Bom':p.estado==='med'?'Médio':'Crítico')+'</span></td>';
-    tbody.appendChild(row);
-  });
+  provincias
+    .filter(function(p) { return !filtro || p.nome.toLowerCase().includes(filtro.toLowerCase()); })
+    .forEach(function(p) {
+      var pct = Math.round(p.apr);
+      var cor = p.apr >= 80 ? '#00A65A' : p.apr >= 72 ? '#D97706' : '#DC2626';
+      var row = document.createElement('tr');
+      row.innerHTML =
+        '<td style="font-weight:600;">'+p.nome+'</td>'+
+        '<td>'+(p.mat||0).toLocaleString('pt-PT')+'</td>'+
+        '<td><span style="font-weight:600;color:'+cor+'">'+p.apr+'%</span> <div class="prov-bar-bg"><div class="prov-bar-fill" style="width:'+pct+'%;background:'+cor+';"></div></div></td>'+
+        '<td style="color:'+(p.eva>18?'#DC2626':p.eva>13?'#D97706':'#6B7280')+'">'+p.eva+'%</td>'+
+        '<td>'+(p.esc||0).toLocaleString('pt-PT')+'</td>'+
+        '<td>'+(p.prof||0).toLocaleString('pt-PT')+'</td>'+
+        '<td><span class="status-pill '+(p.estado||'med')+'">'+(p.estado==='bom'?'Bom':p.estado==='medio'?'Médio':'Crítico')+'</span></td>';
+      tbody.appendChild(row);
+    });
 }
 
 function filtrarTabela(v) { renderTabela(v); }
-renderTabela('');
 
-// EVASÃO GRID
+// ── EVASÃO GRID ───────────────────────────────────
 function renderEvasao() {
   var grid = document.getElementById('evasao-grid');
   grid.innerHTML = '';
-  var criticas = provincias.filter(p=>p.estado==='mau').slice(0,6);
-  criticas.forEach(function(p) {
-    var pct = Math.round(p.eva * 4);
-    var div = document.createElement('div');
-    div.className = 'evasao-card';
-    div.innerHTML =
-      '<div class="evasao-prov">'+p.nome+'</div>'+
-      '<div class="evasao-num">'+p.eva+'%</div>'+
-      '<div class="evasao-lbl">taxa de evasão escolar</div>'+
-      '<div class="evasao-bar"><div class="evasao-fill" style="width:'+pct+'%"></div></div>';
-    grid.appendChild(div);
-  });
+  provincias
+    .filter(function(p) { return p.estado === 'mau' || p.estado === 'critico'; })
+    .slice(0, 6)
+    .forEach(function(p) {
+      var pct = Math.min(Math.round(p.eva * 4), 100);
+      var div = document.createElement('div');
+      div.className = 'evasao-card';
+      div.innerHTML =
+        '<div class="evasao-prov">'+p.nome+'</div>'+
+        '<div class="evasao-num">'+p.eva+'%</div>'+
+        '<div class="evasao-lbl">taxa de evasão escolar</div>'+
+        '<div class="evasao-bar"><div class="evasao-fill" style="width:'+pct+'%"></div></div>';
+      grid.appendChild(div);
+    });
 }
-renderEvasao();
 
 function exportarPDF() {
-  alert('Em ambiente de produção, esta função gera um PDF completo com todos os gráficos e dados filtrados. Requer integração com jsPDF ou exportação server-side.');
+  alert('Em ambiente de produção, esta função gera um PDF completo com todos os gráficos e dados filtrados.');
 }
+
+// ── INICIAR ───────────────────────────────────────
+carregarDashboard(2025);
+carregarEvolucao();
+carregarProvincias(2025);
 </script>
 </body>
 </html>
