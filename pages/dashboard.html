@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="../js/auth.js"></script>
 <style>
   :root {
     --verde: #006B3C;
@@ -155,6 +154,24 @@
 </style>
 </head>
 <body>
+<script>
+// ── AUTH INLINE ───────────────────────────────────
+var EduMozAuth = (function() {
+  function verificar() {
+    var raw = sessionStorage.getItem('edumoz_user');
+    if (!raw) { window.location.href = 'login.html'; return null; }
+    try {
+      var u = JSON.parse(raw);
+      if (!u.loggedIn) { window.location.href = 'login.html'; return null; }
+      return u;
+    } catch(e) { window.location.href = 'login.html'; return null; }
+  }
+  function getUser() {
+    try { return JSON.parse(sessionStorage.getItem('edumoz_user')); } catch(e) { return null; }
+  }
+  return { verificar: verificar, getUser: getUser };
+})();
+</script>
 
 <aside class="sidebar">
   <div class="sb-logo">
