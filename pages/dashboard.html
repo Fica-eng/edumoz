@@ -188,11 +188,18 @@
     <a href="#" class="sb-item"><span class="icon">🔒</span> Auditoria</a>
   </div>
 
+  <div class="sb-section">
+    <div class="sb-label">Sessão</div>
+    <a href="#" class="sb-item" onclick="fazerLogout(event)" style="color:rgba(220,80,80,0.7);">
+      <span class="icon">🚪</span> Sair do sistema
+    </a>
+  </div>
+
   <div class="sb-user">
-    <div class="sb-avatar">AM</div>
+    <div class="sb-avatar" id="sb-avatar">AM</div>
     <div>
-      <div class="sb-user-name">Admin MEC</div>
-      <div class="sb-user-role">Administrador Nacional</div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
     </div>
   </div>
 </aside>
@@ -566,7 +573,25 @@ function exportarPDF() {
 }
 
 // ── INICIAR ───────────────────────────────────────
-var __user = EduMozAuth.verificar(); EduMozAuth.injectarUser(); carregarDashboard(2025);
+// ── AUTH ─────────────────────────────────────────
+var __user = EduMozAuth.verificar();
+if (__user) {
+  var roles = {admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};
+  var iniciais = (__user.nome||__user.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('sb-avatar').textContent = iniciais;
+  document.getElementById('sb-nome').textContent = __user.nome || __user.email;
+  document.getElementById('sb-role').textContent = roles[__user.perfil] || __user.perfil;
+}
+
+function fazerLogout(e) {
+  e.preventDefault();
+  if (confirm('Tem a certeza que quer sair do sistema?')) {
+    sessionStorage.removeItem('edumoz_user');
+    window.location.href = 'login.html';
+  }
+}
+
+carregarDashboard(2025);
 carregarEvolucao();
 carregarProvincias(2025);
 </script>
