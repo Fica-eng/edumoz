@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #006B3C; --verde-escuro: #004D2B; --verde-claro: #00A65A;
+    --ouro: #FCDD09; --preto: #0A0A0A; --cinza: #6B7280;
+    --borda: #E5E7EB; --bg: #F3F4F0; --branco: #fff;
+    --perigo: #DC2626;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'DM Sans',sans-serif;
+    min-height:100vh; display:flex;
+    background: var(--bg);
+  }
+
+  /* LADO ESQUERDO */
+  .left {
+    width: 45%; background: var(--verde-escuro);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 48px; position: relative; overflow: hidden;
+  }
+  .left::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 80%, rgba(252,221,9,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,166,90,0.1) 0%, transparent 50%);
+  }
+  .left-logo { display:flex; align-items:center; gap:12px; position:relative; }
+  .left-logo .strip { width:3px; height:32px; border-radius:2px; background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%); }
+  .left-logo span { font-family:'Playfair Display',serif; font-size:24px; font-weight:700; color:#fff; }
+
+  .left-content { position:relative; }
+  .left-content h1 {
+    font-family:'Playfair Display',serif;
+    font-size: clamp(32px,4vw,52px); font-weight:900; color:#fff;
+    line-height:1.1; letter-spacing:-1px; margin-bottom:16px;
+  }
+  .left-content h1 em { font-style:normal; color:var(--ouro); }
+  .left-content p { font-size:16px; color:rgba(255,255,255,0.55); line-height:1.7; font-weight:300; max-width:340px; }
+
+  .left-stats { display:flex; gap:32px; position:relative; }
+  .lst-item .lst-num { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; color:var(--ouro); }
+  .lst-item .lst-lbl { font-size:12px; color:rgba(255,255,255,0.4); margin-top:2px; }
+
+  /* LADO DIREITO */
+  .right {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding: 48px 40px;
+  }
+  .form-box { width:100%; max-width:400px; }
+
+  .form-box h2 { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:6px; }
+  .form-box .subtitle { font-size:14px; color:var(--cinza); margin-bottom:36px; }
+
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:13px; font-weight:600; color:var(--preto); margin-bottom:6px; }
+  .field input, .field select {
+    width:100%; padding:12px 16px; border:1.5px solid var(--borda);
+    border-radius:10px; font-size:15px; font-family:'DM Sans',sans-serif;
+    background:#fff; color:var(--preto); outline:none; transition:border .15s;
+    appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color:var(--verde); }
+  .field .input-wrap { position:relative; }
+  .field .eye-btn {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--cinza); font-size:16px;
+  }
+
+  .perfil-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:24px; }
+  .perfil-btn {
+    padding:10px 12px; border:1.5px solid var(--borda); border-radius:10px;
+    background:#fff; cursor:pointer; text-align:center; transition:all .15s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .perfil-btn:hover { border-color:var(--verde-claro); }
+  .perfil-btn.on { border-color:var(--verde); background:rgba(0,107,60,0.05); }
+  .perfil-btn .perfil-icon { font-size:20px; display:block; margin-bottom:4px; }
+  .perfil-btn .perfil-nome { font-size:12px; font-weight:500; color:var(--preto); }
+  .perfil-btn.on .perfil-nome { color:var(--verde); }
+
+  .btn-entrar {
+    width:100%; padding:14px; background:var(--verde);
+    color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600;
+    font-family:'DM Sans',sans-serif; cursor:pointer; transition:background .15s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-entrar:hover { background:var(--verde-escuro); }
+  .btn-entrar:disabled { opacity:.6; cursor:not-allowed; }
+
+  .erro-msg {
+    background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.2);
+    color:var(--perigo); font-size:13px; padding:10px 14px; border-radius:8px;
+    margin-bottom:16px; display:none;
+  }
+  .erro-msg.show { display:block; }
+
+  .demo-hint {
+    margin-top:24px; padding:16px; background:rgba(0,107,60,0.05);
+    border:1px solid rgba(0,107,60,0.15); border-radius:10px;
+  }
+  .demo-hint p { font-size:12px; color:var(--cinza); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+  .demo-accounts { display:flex; flex-direction:column; gap:4px; }
+  .demo-acc {
+    font-size:12px; color:var(--cinza); cursor:pointer; padding:3px 0;
+    display:flex; gap:8px;
+  }
+  .demo-acc:hover { color:var(--verde); }
+  .demo-acc strong { color:var(--preto); min-width:80px; }
+
+  .voltar { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--cinza); text-decoration:none; margin-bottom:32px; transition:color .15s; }
+  .voltar:hover { color:var(--verde); }
+
+  @media(max-width:768px) {
+    .left { display:none; }
+    .right { padding:32px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LADO ESQUERDO -->
+<div class="left">
+  <div class="left-logo">
+    <div class="strip"></div>
+    <span>EduMoz</span>
+  </div>
+  <div class="left-content">
+    <h1>Educação<br>mais <em>inteligente</em><br>para Moçambique</h1>
+    <p>Sistema de Administração Educacional do Ministério da Educação e Cultura — dados em tempo real para todas as províncias.</p>
+  </div>
+  <div class="left-stats">
+    <div class="lst-item"><div class="lst-num">11</div><div class="lst-lbl">Províncias</div></div>
+    <div class="lst-item"><div class="lst-num">6M+</div><div class="lst-lbl">Alunos</div></div>
+    <div class="lst-item"><div class="lst-num">8 000+</div><div class="lst-lbl">Escolas</div></div>
+  </div>
+</div>
+
+<!-- LADO DIREITO -->
+<div class="right">
+  <div class="form-box">
+    <a href="../index.html" class="voltar">← Voltar ao início</a>
+    <h2>Bem-vindo de volta</h2>
+    <p class="subtitle">Entre com as suas credenciais do MEC</p>
+
+    <!-- PERFIL -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Seleccione o seu perfil</div>
+      <div class="perfil-grid">
+        <button class="perfil-btn on" onclick="selPerfil('admin',this)">
+          <span class="perfil-icon">🏛️</span>
+          <span class="perfil-nome">Admin MEC</span>
+        </button>
+        <button class="perfil-btn" onclick="selPerfil('coordenador',this)">
+          <span class="perfil-icon">🗺️</span>
+          <span class="perfil-nome">Coordenador</span>
+        </button>
+        <button class="perfil-btn" onclick="selPerfil('diretor',this)">
+          <span class="perfil-icon">🏫</span>
+          <span class="perfil-nome">Diretor</span>
+        </button>
+        <button class="perfil-btn" onclick="selPerfil('professor',this)">
+          <span class="perfil-icon">👩‍🏫</span>
+          <span class="perfil-nome">Professor</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="erro-msg" id="erro-msg">Email ou senha incorrectos. Tente novamente.</div>
+
+    <div class="field">
+      <label>Email institucional</label>
+      <input type="email" id="email" placeholder="nome@mec.gov.mz" autocomplete="email">
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <div class="input-wrap">
+        <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+        <button class="eye-btn" onclick="toggleSenha()" type="button" id="eye-btn">👁</button>
+      </div>
+    </div>
+
+    <button class="btn-entrar" id="btn-entrar" onclick="entrar()">
+      <span id="btn-texto">Entrar no sistema</span>
+    </button>
+
+    <!-- DEMO -->
+    <div class="demo-hint">
+      <p>Contas de demonstração</p>
+      <div class="demo-accounts">
+        <div class="demo-acc" onclick="preencherDemo('admin@mec.gov.mz','admin123','admin')">
+          <strong>Admin MEC</strong> admin@mec.gov.mz · admin123
+        </div>
+        <div class="demo-acc" onclick="preencherDemo('coord@mec.gov.mz','coord123','coordenador')">
+          <strong>Coordenador</strong> coord@mec.gov.mz · coord123
+        </div>
+        <div class="demo-acc" onclick="preencherDemo('diretor@escola.mz','dir123','diretor')">
+          <strong>Diretor</strong> diretor@escola.mz · dir123
+        </div>
+        <div class="demo-acc" onclick="preencherDemo('prof@escola.mz','prof123','professor')">
+          <strong>Professor</strong> prof@escola.mz · prof123
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var perfilActual = 'admin';
+
+// Contas demo (em produção isto vem do backend/Supabase Auth)
+var contasDemo = {
+  'admin@mec.gov.mz':    { senha:'admin123',  perfil:'admin',       nome:'Administrador MEC' },
+  'coord@mec.gov.mz':    { senha:'coord123',  perfil:'coordenador', nome:'Coordenador Nacional' },
+  'diretor@escola.mz':   { senha:'dir123',    perfil:'diretor',     nome:'Director de Escola' },
+  'prof@escola.mz':      { senha:'prof123',   perfil:'professor',   nome:'Professor Silva' },
+};
+
+function selPerfil(perfil, el) {
+  perfilActual = perfil;
+  document.querySelectorAll('.perfil-btn').forEach(function(b) { b.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+function toggleSenha() {
+  var inp = document.getElementById('senha');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function preencherDemo(email, senha, perfil) {
+  document.getElementById('email').value = email;
+  document.getElementById('senha').value = senha;
+  // Selecciona o perfil correspondente
+  var btns = document.querySelectorAll('.perfil-btn');
+  var perfis = ['admin','coordenador','diretor','professor'];
+  btns.forEach(function(b, i) {
+    b.classList.toggle('on', perfis[i] === perfil);
+  });
+  perfilActual = perfil;
+}
+
+function entrar() {
+  var email = document.getElementById('email').value.trim();
+  var senha = document.getElementById('senha').value;
+  var erro  = document.getElementById('erro-msg');
+  var btn   = document.getElementById('btn-entrar');
+  var texto = document.getElementById('btn-texto');
+
+  erro.classList.remove('show');
+
+  if (!email || !senha) {
+    erro.textContent = 'Por favor preencha o email e a senha.';
+    erro.classList.add('show');
+    return;
+  }
+
+  // Loading
+  btn.disabled = true;
+  texto.textContent = 'A verificar...';
+
+  // Simula verificação (em produção usa Supabase Auth)
+  setTimeout(function() {
+    var conta = contasDemo[email];
+
+    if (conta && conta.senha === senha && conta.perfil === perfilActual) {
+      // Guarda sessão no sessionStorage
+      sessionStorage.setItem('edumoz_user', JSON.stringify({
+        email: email,
+        nome: conta.nome,
+        perfil: conta.perfil,
+        loggedIn: true,
+        loginAt: new Date().toISOString()
+      }));
+      // Redireciona para o dashboard
+      window.location.href = 'dashboard.html';
+    } else {
+      erro.textContent = 'Email, senha ou perfil incorrectos. Tente novamente.';
+      erro.classList.add('show');
+      btn.disabled = false;
+      texto.textContent = 'Entrar no sistema';
+    }
+  }, 800);
+}
+
+// Enter para submeter
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') entrar();
+});
+
+// Se já está logado, redireciona
+var user = sessionStorage.getItem('edumoz_user');
+if (user) {
+  try {
+    var u = JSON.parse(user);
+    if (u.loggedIn) window.location.href = 'dashboard.html';
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
