@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escolas · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde:#006B3C; --verde-escuro:#004D2B; --verde-claro:#00A65A;
+    --ouro:#FCDD09; --preto:#0A0A0A; --bg:#F3F4F0; --sidebar:#0A1F14;
+    --branco:#fff; --cinza:#6B7280; --borda:#E5E7EB; --perigo:#DC2626; --aviso:#D97706;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--preto);display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{width:240px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+  .sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-logo .strip{width:3px;height:28px;border-radius:2px;background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%);}
+  .sb-logo span{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+  .sb-logo small{font-size:10px;color:rgba(255,255,255,0.35);display:block;margin-top:1px;}
+  .sb-section{padding:20px 12px 8px;}
+  .sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+  .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-item.active{background:rgba(0,166,90,0.2);color:var(--verde-claro);}
+  .sb-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:36px;height:36px;border-radius:10px;background:var(--verde);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;}
+  .sb-user-name{font-size:13px;color:#fff;font-weight:500;}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,0.35);}
+
+  /* MAIN */
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--borda);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+  .topbar h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+
+  .btn{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .btn-primary{background:var(--verde);color:#fff;}
+  .btn-primary:hover{background:var(--verde-escuro);}
+  .btn-outline{background:#fff;color:var(--cinza);border:1px solid var(--borda);}
+  .btn-outline:hover{border-color:var(--verde);color:var(--verde);}
+  .btn-danger{background:rgba(220,38,38,0.1);color:var(--perigo);border:1px solid rgba(220,38,38,0.2);}
+  .btn-danger:hover{background:var(--perigo);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+
+  .content{padding:28px 32px;flex:1;}
+
+  /* STATS ROW */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid var(--borda);}
+  .stat-label{font-size:11px;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--cinza);margin-top:4px;}
+
+  /* FILTERS */
+  .filters-bar{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .search-box{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:260px;outline:none;font-family:'DM Sans',sans-serif;}
+  .search-box:focus{border-color:var(--verde);}
+  .filter-select{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;background:#fff;cursor:pointer;}
+  .filter-select:focus{border-color:var(--verde);}
+  .results-count{margin-left:auto;font-size:13px;color:var(--cinza);}
+
+  /* TABLE */
+  .table-card{background:#fff;border-radius:14px;border:1px solid var(--borda);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza);padding:12px 16px;text-align:left;border-bottom:1px solid var(--borda);background:#FAFAF8;}
+  td{padding:14px 16px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.04);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(0,107,60,0.02);}
+  .tipo-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;}
+  .tipo-primaria{background:rgba(0,107,60,0.1);color:var(--verde);}
+  .tipo-secundaria{background:rgba(37,99,235,0.1);color:#2563EB;}
+  .tipo-ipeme{background:rgba(124,58,237,0.1);color:#7C3AED;}
+  .acoes{display:flex;gap:6px;}
+
+  /* PAGINATION */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--borda);}
+  .pag-info{font-size:13px;color:var(--cinza);}
+  .pag-btns{display:flex;gap:6px;}
+  .pag-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--borda);background:#fff;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;}
+  .pag-btn.on{background:var(--verde);color:#fff;border-color:var(--verde);}
+  .pag-btn:hover:not(.on){border-color:var(--verde);color:var(--verde);}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--cinza);padding:4px;}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .modal-grid.full{grid-template-columns:1fr;}
+  .field{margin-bottom:0;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+  .field input,.field select,.field textarea{width:100%;padding:10px 14px;border:1.5px solid var(--borda);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--verde);}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:20px;border-top:1px solid var(--borda);}
+
+  /* LOADING */
+  .loading{text-align:center;padding:48px;color:var(--cinza);font-size:14px;}
+
+  @media(max-width:900px){
+    .sidebar{display:none;}
+    .main{margin-left:0;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div><span>EduMoz</span><small>MEC · Moçambique</small></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="dashboard.html" class="sb-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="#" class="sb-item"><span class="icon">📈</span> Relatórios</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="escolas.html" class="sb-item active"><span class="icon">🏫</span> Escolas</a>
+    <a href="alunos.html" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="#" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
+    <a href="#" class="sb-item"><span class="icon">📅</span> Frequência</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="logout(event)"><span class="icon">🚪</span> Sair</a>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Gestão de Escolas</h1></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Nova Escola</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total de Escolas</div>
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-sub">registadas no sistema</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Escolas Primárias</div>
+        <div class="stat-val" id="st-primarias" style="color:var(--verde)">—</div>
+        <div class="stat-sub">EP1 e EP2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Escolas Secundárias</div>
+        <div class="stat-val" id="st-secundarias" style="color:#2563EB">—</div>
+        <div class="stat-sub">ESG1 e ESG2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Províncias Cobertas</div>
+        <div class="stat-val" id="st-provincias" style="color:var(--ouro)">11</div>
+        <div class="stat-sub">cobertura nacional</div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-bar">
+      <input class="search-box" placeholder="🔍  Pesquisar escola..." oninput="filtrar()" id="search-input">
+      <select class="filter-select" onchange="filtrar()" id="filter-provincia">
+        <option value="">Todas as províncias</option>
+        <option>Maputo Cidade</option><option>Maputo Província</option>
+        <option>Gaza</option><option>Inhambane</option><option>Sofala</option>
+        <option>Manica</option><option>Tete</option><option>Zambézia</option>
+        <option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option>
+      </select>
+      <select class="filter-select" onchange="filtrar()" id="filter-tipo">
+        <option value="">Todos os tipos</option>
+        <option value="primaria_ep1">EP1 — Primária 1º Grau</option>
+        <option value="primaria_ep2">EP2 — Primária 2º Grau</option>
+        <option value="secundaria_esg1">ESG1 — Secundária 1º Ciclo</option>
+        <option value="secundaria_esg2">ESG2 — Secundária 2º Ciclo</option>
+        <option value="ipeme">IPEME</option>
+      </select>
+      <span class="results-count" id="results-count"></span>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome da Escola</th>
+            <th>Tipo</th>
+            <th>Província</th>
+            <th>Distrito</th>
+            <th>Alunos</th>
+            <th>Professores</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-escolas">
+          <tr><td colspan="7" class="loading">A carregar escolas...</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pag-info" id="pag-info">—</span>
+        <div class="pag-btns" id="pag-btns"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL NOVA ESCOLA -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titulo">Nova Escola</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-grid">
+      <div class="field" style="grid-column:1/-1;">
+        <label>Nome da Escola *</label>
+        <input type="text" id="f-nome" placeholder="Ex: Escola Primária de Tobué">
+      </div>
+      <div class="field">
+        <label>Tipo *</label>
+        <select id="f-tipo">
+          <option value="">Seleccione...</option>
+          <option value="primaria_ep1">EP1 — Primária 1º Grau</option>
+          <option value="primaria_ep2">EP2 — Primária 2º Grau</option>
+          <option value="secundaria_esg1">ESG1 — Secundária 1º Ciclo</option>
+          <option value="secundaria_esg2">ESG2 — Secundária 2º Ciclo</option>
+          <option value="ipeme">IPEME</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Província *</label>
+        <select id="f-provincia">
+          <option value="">Seleccione...</option>
+          <option>Maputo Cidade</option><option>Maputo Província</option>
+          <option>Gaza</option><option>Inhambane</option><option>Sofala</option>
+          <option>Manica</option><option>Tete</option><option>Zambézia</option>
+          <option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Distrito</label>
+        <input type="text" id="f-distrito" placeholder="Ex: Marracuene">
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input type="tel" id="f-telefone" placeholder="+258 21 000 000">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="f-email" placeholder="escola@mec.gov.mz">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEscola()" id="btn-guardar">Guardar Escola</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = 'https://edumoz-backend-production.up.railway.app';
+var todasEscolas = [];
+var escolasFiltradas = [];
+var paginaActual = 1;
+var porPagina = 15;
+var editandoId = null;
+
+// AUTH
+var __u = (function(){try{var u=JSON.parse(sessionStorage.getItem('edumoz_user'));if(u&&u.loggedIn){var r={admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};var i=(u.nome||u.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();document.getElementById('sb-avatar').textContent=i;document.getElementById('sb-nome').textContent=u.nome||u.email;document.getElementById('sb-role').textContent=r[u.perfil]||u.perfil;return u;}else{window.location.href='login.html';}}catch(e){window.location.href='login.html';}})();
+function logout(e){e.preventDefault();if(confirm('Tem a certeza que quer sair?')){sessionStorage.removeItem('edumoz_user');window.location.href='login.html';}}
+
+// DADOS MOCK (fallback se API falhar)
+var mockEscolas = [
+  {id:1,nome:'Escola Primária de Tobué',tipo:'primaria_ep1',provincia:'Gaza',distrito:'Chókwè',total_alunos:420,total_professores:12},
+  {id:2,nome:'Escola Secundária da Matola',tipo:'secundaria_esg1',provincia:'Maputo Província',distrito:'Matola',total_alunos:1200,total_professores:48},
+  {id:3,nome:'EP2 de Xai-Xai',tipo:'primaria_ep2',provincia:'Gaza',distrito:'Xai-Xai',total_alunos:680,total_professores:22},
+  {id:4,nome:'Escola Secundária de Nampula',tipo:'secundaria_esg2',provincia:'Nampula',distrito:'Nampula Cidade',total_alunos:1850,total_professores:72},
+  {id:5,nome:'IPEME de Beira',tipo:'ipeme',provincia:'Sofala',distrito:'Beira',total_alunos:340,total_professores:18},
+  {id:6,nome:'EP1 de Quelimane',tipo:'primaria_ep1',provincia:'Zambézia',distrito:'Quelimane',total_alunos:510,total_professores:16},
+  {id:7,nome:'Escola Primária de Tete',tipo:'primaria_ep2',provincia:'Tete',distrito:'Tete',total_alunos:730,total_professores:24},
+  {id:8,nome:'ESG1 de Lichinga',tipo:'secundaria_esg1',provincia:'Niassa',distrito:'Lichinga',total_alunos:920,total_professores:38},
+  {id:9,nome:'Escola Primária de Pemba',tipo:'primaria_ep1',provincia:'Cabo Delgado',distrito:'Pemba',total_alunos:380,total_professores:14},
+  {id:10,nome:'EP2 de Inhambane',tipo:'primaria_ep2',provincia:'Inhambane',distrito:'Inhambane',total_alunos:460,total_professores:17},
+  {id:11,nome:'Escola Secundária de Chimoio',tipo:'secundaria_esg1',provincia:'Manica',distrito:'Chimoio',total_alunos:1100,total_professores:44},
+  {id:12,nome:'EP1 de Mandlakazi',tipo:'primaria_ep1',provincia:'Gaza',distrito:'Mandlakazi',total_alunos:290,total_professores:10},
+  {id:13,nome:'ESG2 de Maputo',tipo:'secundaria_esg2',provincia:'Maputo Cidade',distrito:'KaMpfumo',total_alunos:2100,total_professores:85},
+  {id:14,nome:'Escola Primária de Angoche',tipo:'primaria_ep1',provincia:'Nampula',distrito:'Angoche',total_alunos:440,total_professores:15},
+  {id:15,nome:'EP2 de Mocuba',tipo:'primaria_ep2',provincia:'Zambézia',distrito:'Mocuba',total_alunos:560,total_professores:19},
+];
+
+// CARREGAR ESCOLAS
+function carregarEscolas() {
+  fetch(API + '/api/escolas?limite=200')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.escolas && data.escolas.length > 0) {
+        todasEscolas = data.escolas;
+      } else {
+        todasEscolas = mockEscolas;
+      }
+      actualizarStats();
+      filtrar();
+    })
+    .catch(function(){
+      todasEscolas = mockEscolas;
+      actualizarStats();
+      filtrar();
+    });
+}
+
+function actualizarStats() {
+  document.getElementById('st-total').textContent = todasEscolas.length.toLocaleString('pt-PT');
+  var prim = todasEscolas.filter(function(e){return e.tipo && e.tipo.includes('primaria');}).length;
+  var sec  = todasEscolas.filter(function(e){return e.tipo && e.tipo.includes('secundaria');}).length;
+  document.getElementById('st-primarias').textContent = prim;
+  document.getElementById('st-secundarias').textContent = sec;
+}
+
+function tipoLabel(tipo) {
+  var m = {primaria_ep1:'EP1',primaria_ep2:'EP2',secundaria_esg1:'ESG1',secundaria_esg2:'ESG2',ipeme:'IPEME',outro:'Outro'};
+  return m[tipo] || tipo || '—';
+}
+function tipoClasse(tipo) {
+  if (!tipo) return '';
+  if (tipo.includes('primaria')) return 'tipo-primaria';
+  if (tipo.includes('secundaria')) return 'tipo-secundaria';
+  if (tipo === 'ipeme') return 'tipo-ipeme';
+  return '';
+}
+
+function filtrar() {
+  var q    = (document.getElementById('search-input').value||'').toLowerCase();
+  var prov = document.getElementById('filter-provincia').value;
+  var tipo = document.getElementById('filter-tipo').value;
+  escolasFiltradas = todasEscolas.filter(function(e){
+    return (!q || (e.nome||'').toLowerCase().includes(q) || (e.distrito||'').toLowerCase().includes(q))
+        && (!prov || e.provincia === prov)
+        && (!tipo || e.tipo === tipo);
+  });
+  paginaActual = 1;
+  renderTabela();
+}
+
+function renderTabela() {
+  var tbody = document.getElementById('tbody-escolas');
+  var total = escolasFiltradas.length;
+  var inicio = (paginaActual-1)*porPagina;
+  var pagina = escolasFiltradas.slice(inicio, inicio+porPagina);
+  document.getElementById('results-count').textContent = total + ' escola' + (total!==1?'s':'') + ' encontrada' + (total!==1?'s':'');
+
+  if (pagina.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhuma escola encontrada.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  pagina.forEach(function(e) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="font-weight:600;">'+e.nome+'</td>'+
+      '<td><span class="tipo-pill '+tipoClasse(e.tipo)+'">'+tipoLabel(e.tipo)+'</span></td>'+
+      '<td>'+( e.provincia||'—')+'</td>'+
+      '<td>'+(e.distrito||'—')+'</td>'+
+      '<td>'+(e.total_alunos||0).toLocaleString('pt-PT')+'</td>'+
+      '<td>'+(e.total_professores||0).toLocaleString('pt-PT')+'</td>'+
+      '<td><div class="acoes">'+
+        '<button class="btn btn-outline btn-sm" onclick="editarEscola('+JSON.stringify(e)+')">✏️ Editar</button>'+
+        '<button class="btn btn-danger btn-sm" onclick="eliminarEscola('+e.id+')">🗑</button>'+
+      '</div></td>';
+    tbody.appendChild(tr);
+  });
+
+  // Paginação
+  var totalPags = Math.ceil(total/porPagina);
+  document.getElementById('pag-info').textContent = 'Página '+paginaActual+' de '+totalPags+' ('+total+' escolas)';
+  var btns = document.getElementById('pag-btns');
+  btns.innerHTML = '';
+  for (var i=1; i<=Math.min(totalPags,7); i++) {
+    var btn = document.createElement('button');
+    btn.className = 'pag-btn' + (i===paginaActual?' on':'');
+    btn.textContent = i;
+    btn.onclick = (function(pg){return function(){paginaActual=pg;renderTabela();};})(i);
+    btns.appendChild(btn);
+  }
+}
+
+// MODAL
+function abrirModal(escola) {
+  editandoId = null;
+  document.getElementById('modal-titulo').textContent = 'Nova Escola';
+  document.getElementById('btn-guardar').textContent = 'Guardar Escola';
+  ['nome','tipo','provincia','distrito','telefone','email'].forEach(function(f){
+    document.getElementById('f-'+f).value = escola ? (escola[f]||'') : '';
+  });
+  document.getElementById('modal').classList.add('show');
+}
+function editarEscola(e) {
+  editandoId = e.id;
+  document.getElementById('modal-titulo').textContent = 'Editar Escola';
+  document.getElementById('btn-guardar').textContent = 'Actualizar';
+  document.getElementById('f-nome').value = e.nome||'';
+  document.getElementById('f-tipo').value = e.tipo||'';
+  document.getElementById('f-provincia').value = e.provincia||'';
+  document.getElementById('f-distrito').value = e.distrito||'';
+  document.getElementById('f-telefone').value = e.telefone||'';
+  document.getElementById('f-email').value = e.email||'';
+  document.getElementById('modal').classList.add('show');
+}
+function fecharModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function guardarEscola() {
+  var nome     = document.getElementById('f-nome').value.trim();
+  var tipo     = document.getElementById('f-tipo').value;
+  var provincia= document.getElementById('f-provincia').value;
+  var distrito = document.getElementById('f-distrito').value.trim();
+  var telefone = document.getElementById('f-telefone').value.trim();
+  var email    = document.getElementById('f-email').value.trim();
+
+  if (!nome || !tipo || !provincia) {
+    alert('Preencha os campos obrigatórios: Nome, Tipo e Província.');
+    return;
+  }
+
+  var btn = document.getElementById('btn-guardar');
+  btn.disabled = true; btn.textContent = 'A guardar...';
+
+  var body = JSON.stringify({nome,tipo,provincia,distrito,telefone,email});
+  fetch(API+'/api/escolas', {method:'POST',headers:{'Content-Type':'application/json'},body:body})
+    .then(function(r){return r.json();})
+    .then(function(){
+      fecharModal();
+      carregarEscolas();
+    })
+    .catch(function(){
+      // Fallback: adiciona localmente
+      todasEscolas.push({id:Date.now(),nome,tipo,provincia,distrito,telefone,email,total_alunos:0,total_professores:0});
+      actualizarStats();
+      filtrar();
+      fecharModal();
+    })
+    .finally(function(){
+      btn.disabled=false;
+      btn.textContent = editandoId ? 'Actualizar' : 'Guardar Escola';
+    });
+}
+
+function eliminarEscola(id) {
+  if (!confirm('Tem a certeza que quer eliminar esta escola? Esta acção não pode ser desfeita.')) return;
+  todasEscolas = todasEscolas.filter(function(e){return e.id!==id;});
+  actualizarStats();
+  filtrar();
+}
+
+function exportarCSV() {
+  var linhas = [['Nome','Tipo','Província','Distrito','Alunos','Professores']];
+  escolasFiltradas.forEach(function(e){
+    linhas.push([e.nome,tipoLabel(e.tipo),e.provincia||'',e.distrito||'',e.total_alunos||0,e.total_professores||0]);
+  });
+  var csv = linhas.map(function(l){return l.join(';');}).join('\n');
+  var blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url; a.download='escolas-edumoz.csv'; a.click();
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+
+carregarEscolas();
+</script>
+</body>
+</html>

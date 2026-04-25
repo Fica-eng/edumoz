@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alunos · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--verde:#006B3C;--verde-escuro:#004D2B;--verde-claro:#00A65A;--ouro:#FCDD09;--preto:#0A0A0A;--bg:#F3F4F0;--sidebar:#0A1F14;--branco:#fff;--cinza:#6B7280;--borda:#E5E7EB;--perigo:#DC2626;--aviso:#D97706;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--preto);display:flex;min-height:100vh;}
+  .sidebar{width:240px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+  .sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-logo .strip{width:3px;height:28px;border-radius:2px;background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%);}
+  .sb-logo span{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+  .sb-logo small{font-size:10px;color:rgba(255,255,255,0.35);display:block;margin-top:1px;}
+  .sb-section{padding:20px 12px 8px;}
+  .sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+  .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-item.active{background:rgba(0,166,90,0.2);color:var(--verde-claro);}
+  .sb-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:36px;height:36px;border-radius:10px;background:var(--verde);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;}
+  .sb-user-name{font-size:13px;color:#fff;font-weight:500;}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,0.35);}
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--borda);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+  .topbar h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .btn{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .btn-primary{background:var(--verde);color:#fff;}
+  .btn-primary:hover{background:var(--verde-escuro);}
+  .btn-outline{background:#fff;color:var(--cinza);border:1px solid var(--borda);}
+  .btn-outline:hover{border-color:var(--verde);color:var(--verde);}
+  .btn-danger{background:rgba(220,38,38,0.1);color:var(--perigo);border:1px solid rgba(220,38,38,0.2);}
+  .btn-danger:hover{background:var(--perigo);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+  .content{padding:28px 32px;flex:1;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid var(--borda);}
+  .stat-label{font-size:11px;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--cinza);margin-top:4px;}
+  .filters-bar{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .search-box{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:260px;outline:none;font-family:'DM Sans',sans-serif;}
+  .search-box:focus{border-color:var(--verde);}
+  .filter-select{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;background:#fff;cursor:pointer;}
+  .results-count{margin-left:auto;font-size:13px;color:var(--cinza);}
+  .table-card{background:#fff;border-radius:14px;border:1px solid var(--borda);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza);padding:12px 16px;text-align:left;border-bottom:1px solid var(--borda);background:#FAFAF8;}
+  td{padding:13px 16px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.04);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(0,107,60,0.02);}
+  .status-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;}
+  .status-pill.ativo{background:rgba(0,166,90,0.1);color:var(--verde-claro);}
+  .status-pill.evadido{background:rgba(220,38,38,0.1);color:var(--perigo);}
+  .status-pill.transferido{background:rgba(37,99,235,0.1);color:#2563EB;}
+  .status-pill.concluido{background:rgba(124,58,237,0.1);color:#7C3AED;}
+  .genero-m{color:#2563EB;font-weight:600;}
+  .genero-f{color:#DB2777;font-weight:600;}
+  .acoes{display:flex;gap:6px;}
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--borda);}
+  .pag-info{font-size:13px;color:var(--cinza);}
+  .pag-btns{display:flex;gap:6px;}
+  .pag-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--borda);background:#fff;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;}
+  .pag-btn.on{background:var(--verde);color:#fff;border-color:var(--verde);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--cinza);}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+  .field input,.field select{width:100%;padding:10px 14px;border:1.5px solid var(--borda);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;}
+  .field input:focus,.field select:focus{border-color:var(--verde);}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:20px;border-top:1px solid var(--borda);}
+  .loading{text-align:center;padding:48px;color:var(--cinza);font-size:14px;}
+  .avatar-cell{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div><span>EduMoz</span><small>MEC · Moçambique</small></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="dashboard.html" class="sb-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="#" class="sb-item"><span class="icon">📈</span> Relatórios</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="escolas.html" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+    <a href="alunos.html" class="sb-item active"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="#" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
+    <a href="#" class="sb-item"><span class="icon">📅</span> Frequência</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="logout(event)"><span class="icon">🚪</span> Sair</a>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Gestão de Alunos</h1></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Matricular Aluno</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total de Alunos</div>
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-sub">matriculados em 2025</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Alunos Activos</div>
+        <div class="stat-val" id="st-ativos" style="color:var(--verde)">—</div>
+        <div class="stat-sub">frequentam regularmente</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Em Risco de Evasão</div>
+        <div class="stat-val" id="st-evadidos" style="color:var(--perigo)">—</div>
+        <div class="stat-sub">evadidos ou inativos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Raparigas</div>
+        <div class="stat-val" id="st-feminino" style="color:#DB2777">—</div>
+        <div class="stat-sub">do total de matrículas</div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <input class="search-box" placeholder="🔍  Pesquisar aluno..." oninput="filtrar()" id="search-input">
+      <select class="filter-select" onchange="filtrar()" id="filter-serie">
+        <option value="">Todas as séries</option>
+        <option value="1ª Classe">1ª Classe</option><option value="2ª Classe">2ª Classe</option>
+        <option value="3ª Classe">3ª Classe</option><option value="4ª Classe">4ª Classe</option>
+        <option value="5ª Classe">5ª Classe</option><option value="6ª Classe">6ª Classe</option>
+        <option value="7ª Classe">7ª Classe</option><option value="8ª Classe">8ª Classe</option>
+        <option value="9ª Classe">9ª Classe</option><option value="10ª Classe">10ª Classe</option>
+        <option value="11ª Classe">11ª Classe</option><option value="12ª Classe">12ª Classe</option>
+      </select>
+      <select class="filter-select" onchange="filtrar()" id="filter-genero">
+        <option value="">Todos os géneros</option>
+        <option value="M">Masculino</option>
+        <option value="F">Feminino</option>
+      </select>
+      <select class="filter-select" onchange="filtrar()" id="filter-status">
+        <option value="">Todos os estados</option>
+        <option value="ativo">Activo</option>
+        <option value="evadido">Evadido</option>
+        <option value="transferido">Transferido</option>
+        <option value="concluido">Concluído</option>
+      </select>
+      <span class="results-count" id="results-count"></span>
+    </div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nome Completo</th>
+            <th>Género</th>
+            <th>Série / Turma</th>
+            <th>Data Nasc.</th>
+            <th>Estado</th>
+            <th>Escola</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-alunos">
+          <tr><td colspan="8" class="loading">A carregar alunos...</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pag-info" id="pag-info">—</span>
+        <div class="pag-btns" id="pag-btns"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Matricular Aluno</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-grid">
+      <div class="field" style="grid-column:1/-1;">
+        <label>Nome Completo *</label>
+        <input type="text" id="f-nome" placeholder="Ex: João Manuel Silva">
+      </div>
+      <div class="field">
+        <label>Género *</label>
+        <select id="f-genero">
+          <option value="">Seleccione...</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Data de Nascimento</label>
+        <input type="date" id="f-nascimento">
+      </div>
+      <div class="field">
+        <label>Série *</label>
+        <select id="f-serie">
+          <option value="">Seleccione...</option>
+          <option>1ª Classe</option><option>2ª Classe</option><option>3ª Classe</option>
+          <option>4ª Classe</option><option>5ª Classe</option><option>6ª Classe</option>
+          <option>7ª Classe</option><option>8ª Classe</option><option>9ª Classe</option>
+          <option>10ª Classe</option><option>11ª Classe</option><option>12ª Classe</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Turma</label>
+        <input type="text" id="f-turma" placeholder="Ex: A, B, C">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Escola *</label>
+        <select id="f-escola">
+          <option value="">Seleccione a escola...</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="matricularAluno()" id="btn-matricular">Matricular</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = 'https://edumoz-backend-production.up.railway.app';
+var todosAlunos = [];
+var alunosFiltrados = [];
+var paginaActual = 1;
+var porPagina = 15;
+
+// AUTH
+var __u=(function(){try{var u=JSON.parse(sessionStorage.getItem('edumoz_user'));if(u&&u.loggedIn){var r={admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};var i=(u.nome||u.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();document.getElementById('sb-avatar').textContent=i;document.getElementById('sb-nome').textContent=u.nome||u.email;document.getElementById('sb-role').textContent=r[u.perfil]||u.perfil;return u;}else{window.location.href='login.html';}}catch(e){window.location.href='login.html';}})();
+function logout(e){e.preventDefault();if(confirm('Tem a certeza que quer sair?')){sessionStorage.removeItem('edumoz_user');window.location.href='login.html';}}
+
+// DADOS MOCK
+var nomes=['Ana Machava','João Cossa','Maria Sitoe','Carlos Tembe','Fatima Bila','Pedro Nhaca','Sofia Mahumane','Abel Tivane','Celeste Zunguze','Domingos Mondlane','Eva Macamo','Filipe Chissano','Graça Muianga','Henrique Baloi','Isaura Nkosi','Jorge Malate','Kezia Zimba','Lucas Mavie','Marta Guambe','Nelson Soto'];
+var escolas_mock=['EP1 de Tobué','ESG1 de Xai-Xai','EP2 de Nampula','Escola de Beira','EP1 de Quelimane'];
+var series=['1ª Classe','2ª Classe','3ª Classe','4ª Classe','5ª Classe','6ª Classe','7ª Classe','8ª Classe'];
+var status_list=['ativo','ativo','ativo','ativo','ativo','evadido','transferido','concluido'];
+var mockAlunos=[];
+for(var i=0;i<60;i++){
+  var g=i%3===0?'F':'M';
+  mockAlunos.push({
+    id:i+1,
+    nome_completo:nomes[i%nomes.length]+' '+(i+1),
+    genero:g,
+    data_nascimento:'200'+(i%5)+'-0'+(i%9+1)+'-1'+(i%9+1),
+    serie:series[i%series.length],
+    turma:['A','B','C'][i%3],
+    status:status_list[i%status_list.length],
+    escola_nome:escolas_mock[i%escolas_mock.length]
+  });
+}
+
+function carregarAlunos(){
+  fetch(API+'/api/alunos?ano=2025&limite=200')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.alunos&&data.alunos.length>0){todosAlunos=data.alunos;}
+      else{todosAlunos=mockAlunos;}
+      actualizarStats();filtrar();
+    })
+    .catch(function(){todosAlunos=mockAlunos;actualizarStats();filtrar();});
+}
+
+function actualizarStats(){
+  var ativos=todosAlunos.filter(function(a){return a.status==='ativo';}).length;
+  var evadidos=todosAlunos.filter(function(a){return a.status==='evadido'||a.status==='inativo';}).length;
+  var fem=todosAlunos.filter(function(a){return a.genero==='F';}).length;
+  document.getElementById('st-total').textContent=todosAlunos.length.toLocaleString('pt-PT');
+  document.getElementById('st-ativos').textContent=ativos.toLocaleString('pt-PT');
+  document.getElementById('st-evadidos').textContent=evadidos.toLocaleString('pt-PT');
+  var pctF=todosAlunos.length>0?((fem/todosAlunos.length)*100).toFixed(1)+'%':'—';
+  document.getElementById('st-feminino').textContent=pctF;
+}
+
+function filtrar(){
+  var q=(document.getElementById('search-input').value||'').toLowerCase();
+  var serie=document.getElementById('filter-serie').value;
+  var genero=document.getElementById('filter-genero').value;
+  var status=document.getElementById('filter-status').value;
+  alunosFiltrados=todosAlunos.filter(function(a){
+    return(!q||(a.nome_completo||'').toLowerCase().includes(q))
+        &&(!serie||a.serie===serie)
+        &&(!genero||a.genero===genero)
+        &&(!status||a.status===status);
+  });
+  paginaActual=1;renderTabela();
+}
+
+function corAvatar(nome){
+  var cores=['#006B3C','#2563EB','#7C3AED','#D97706','#DB2777','#0891B2'];
+  return cores[(nome||'').charCodeAt(0)%cores.length];
+}
+
+function renderTabela(){
+  var tbody=document.getElementById('tbody-alunos');
+  var total=alunosFiltrados.length;
+  var inicio=(paginaActual-1)*porPagina;
+  var pagina=alunosFiltrados.slice(inicio,inicio+porPagina);
+  document.getElementById('results-count').textContent=total+' aluno'+(total!==1?'s':'')+' encontrado'+(total!==1?'s':'');
+  if(!pagina.length){tbody.innerHTML='<tr><td colspan="8" class="loading">Nenhum aluno encontrado.</td></tr>';return;}
+  tbody.innerHTML='';
+  pagina.forEach(function(a){
+    var iniciais=(a.nome_completo||'?').split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td><div class="avatar-cell" style="background:'+corAvatar(a.nome_completo)+'">'+iniciais+'</div></td>'+
+      '<td style="font-weight:600;">'+a.nome_completo+'</td>'+
+      '<td class="'+(a.genero==='F'?'genero-f':'genero-m')+'">'+( a.genero==='M'?'♂ Masc':'♀ Fem')+'</td>'+
+      '<td>'+(a.serie||'—')+' / '+(a.turma||'—')+'</td>'+
+      '<td>'+(a.data_nascimento?a.data_nascimento.substring(0,10):'—')+'</td>'+
+      '<td><span class="status-pill '+(a.status||'ativo')+'">'+(a.status==='ativo'?'Activo':a.status==='evadido'?'Evadido':a.status==='transferido'?'Transferido':'Concluído')+'</span></td>'+
+      '<td style="color:var(--cinza);font-size:13px;">'+(a.escola_nome||'—')+'</td>'+
+      '<td><div class="acoes">'+
+        '<button class="btn btn-outline btn-sm" onclick="verAluno('+a.id+')">👁 Ver</button>'+
+        '<button class="btn btn-danger btn-sm" onclick="eliminarAluno('+a.id+')">🗑</button>'+
+      '</div></td>';
+    tbody.appendChild(tr);
+  });
+  // Paginação
+  var totalPags=Math.ceil(total/porPagina);
+  document.getElementById('pag-info').textContent='Página '+paginaActual+' de '+totalPags+' ('+total+' alunos)';
+  var btns=document.getElementById('pag-btns');btns.innerHTML='';
+  for(var i=1;i<=Math.min(totalPags,7);i++){
+    var btn=document.createElement('button');
+    btn.className='pag-btn'+(i===paginaActual?' on':'');
+    btn.textContent=i;
+    btn.onclick=(function(pg){return function(){paginaActual=pg;renderTabela();};})(i);
+    btns.appendChild(btn);
+  }
+}
+
+function carregarEscolasSelect(){
+  fetch(API+'/api/escolas?limite=200')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var sel=document.getElementById('f-escola');
+      (data.escolas||escolas_mock).forEach(function(e){
+        var opt=document.createElement('option');
+        opt.value=e.id||e;opt.textContent=e.nome||e;sel.appendChild(opt);
+      });
+    })
+    .catch(function(){
+      var sel=document.getElementById('f-escola');
+      escolas_mock.forEach(function(nome){
+        var opt=document.createElement('option');opt.value=nome;opt.textContent=nome;sel.appendChild(opt);
+      });
+    });
+}
+
+function abrirModal(){document.getElementById('modal').classList.add('show');carregarEscolasSelect();}
+function fecharModal(){document.getElementById('modal').classList.remove('show');}
+
+function matricularAluno(){
+  var nome=document.getElementById('f-nome').value.trim();
+  var genero=document.getElementById('f-genero').value;
+  var nasc=document.getElementById('f-nascimento').value;
+  var serie=document.getElementById('f-serie').value;
+  var turma=document.getElementById('f-turma').value.trim();
+  var escola=document.getElementById('f-escola').value;
+  if(!nome||!genero||!serie||!escola){alert('Preencha os campos obrigatórios: Nome, Género, Série e Escola.');return;}
+  var btn=document.getElementById('btn-matricular');
+  btn.disabled=true;btn.textContent='A matricular...';
+  var body=JSON.stringify({nome_completo:nome,genero,data_nascimento:nasc,serie,turma,escola_id:escola,ano_lectivo:2025});
+  fetch(API+'/api/alunos',{method:'POST',headers:{'Content-Type':'application/json'},body:body})
+    .then(function(r){return r.json();})
+    .then(function(){fecharModal();carregarAlunos();})
+    .catch(function(){
+      todosAlunos.push({id:Date.now(),nome_completo:nome,genero,data_nascimento:nasc,serie,turma,status:'ativo',escola_nome:escola});
+      actualizarStats();filtrar();fecharModal();
+    })
+    .finally(function(){btn.disabled=false;btn.textContent='Matricular';});
+}
+
+function verAluno(id){
+  var a=todosAlunos.find(function(x){return x.id===id;});
+  if(!a)return;
+  alert('Aluno: '+a.nome_completo+'\nGénero: '+(a.genero==='M'?'Masculino':'Feminino')+'\nSérie: '+(a.serie||'—')+'\nTurma: '+(a.turma||'—')+'\nEstado: '+(a.status||'—')+'\nEscola: '+(a.escola_nome||'—'));
+}
+
+function eliminarAluno(id){
+  if(!confirm('Eliminar este aluno do sistema?'))return;
+  todosAlunos=todosAlunos.filter(function(a){return a.id!==id;});
+  actualizarStats();filtrar();
+}
+
+function exportarCSV(){
+  var linhas=[['Nome','Género','Série','Turma','Estado','Escola']];
+  alunosFiltrados.forEach(function(a){
+    linhas.push([a.nome_completo,a.genero==='M'?'Masculino':'Feminino',a.serie||'',a.turma||'',a.status||'',a.escola_nome||'']);
+  });
+  var csv=linhas.map(function(l){return l.join(';');}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='alunos-edumoz.csv';a.click();
+}
+
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+carregarAlunos();
+</script>
+</body>
+</html>
