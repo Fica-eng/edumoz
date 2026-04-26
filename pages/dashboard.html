@@ -184,34 +184,25 @@ var EduMozAuth = (function() {
 
   <div class="sb-section">
     <div class="sb-label">Principal</div>
-    <a href="#" class="sb-item active"><span class="icon">📊</span> Dashboard</a>
-    <a href="#" class="sb-item"><span class="icon">📈</span> Relatórios <span class="badge">4</span></a>
-    <a href="#" class="sb-item"><span class="icon">🗺️</span> Mapa Nacional</a>
-  </div>
-
-  <div class="sb-section">
-    <div class="sb-label">Gestão</div>
-    <a href="#" class="sb-item"><span class="icon">🏫</span> Escolas</a>
-    <a href="#" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
-    <a href="#" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
-    <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
-    <a href="#" class="sb-item"><span class="icon">📅</span> Frequência</a>
-  </div>
-
-  <div class="sb-section">
-    <div class="sb-label">Sistema</div>
-    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
-    <a href="#" class="sb-item"><span class="icon">⚙️</span> Configurações</a>
-    <a href="#" class="sb-item"><span class="icon">🔒</span> Auditoria</a>
-  </div>
-
-  <div class="sb-section">
-    <div class="sb-label">Sessão</div>
-    <a href="#" class="sb-item" onclick="fazerLogout(event)" style="color:rgba(220,80,80,0.7);">
-      <span class="icon">🚪</span> Sair do sistema
-    </a>
-  </div>
-
+   <div class="sb-section">
+  <div class="sb-label">Principal</div>
+  <a href="dashboard.html" class="sb-item active"><span class="icon">📊</span> Dashboard</a>
+  <a href="relatorios.html" class="sb-item"><span class="icon">📈</span> Relatórios PDF</a>
+  <a href="#" class="sb-item"><span class="icon">🗺️</span> Mapa Nacional</a>
+</div>
+<div class="sb-section">
+  <div class="sb-label">Gestão</div>
+  <a href="escolas.html" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+  <a href="alunos.html" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+  <a href="professor.html" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+  <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
+  <a href="#" class="sb-item"><span class="icon">📅</span> Frequência</a>
+</div>
+<div class="sb-section">
+  <div class="sb-label">Sistema</div>
+  <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+  <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="fazerLogout(event)"><span class="icon">🚪</span> Sair do sistema</a>
+</div>
   <div class="sb-user">
     <div class="sb-avatar" id="sb-avatar">AM</div>
     <div>
