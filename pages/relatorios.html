@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatórios PDF · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{--verde:#006B3C;--verde-escuro:#004D2B;--verde-claro:#00A65A;--ouro:#FCDD09;--preto:#0A0A0A;--bg:#F3F4F0;--sidebar:#0A1F14;--branco:#fff;--cinza:#6B7280;--borda:#E5E7EB;--perigo:#DC2626;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--preto);display:flex;min-height:100vh;}
+  .sidebar{width:240px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+  .sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-logo .strip{width:3px;height:28px;border-radius:2px;background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%);}
+  .sb-logo span{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+  .sb-logo small{font-size:10px;color:rgba(255,255,255,0.35);display:block;margin-top:1px;}
+  .sb-section{padding:20px 12px 8px;}
+  .sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+  .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-item.active{background:rgba(0,166,90,0.2);color:var(--verde-claro);}
+  .sb-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:36px;height:36px;border-radius:10px;background:var(--verde);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;}
+  .sb-user-name{font-size:13px;color:#fff;font-weight:500;}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,0.35);}
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--borda);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+  .topbar h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .content{padding:28px 32px;flex:1;}
+  .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--verde);margin-bottom:12px;}
+  .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:32px;}
+  .report-card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:24px;transition:all .2s;position:relative;overflow:hidden;}
+  .report-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .report-card.verde::before{background:var(--verde);}
+  .report-card.ouro::before{background:var(--ouro);}
+  .report-card.azul::before{background:#2563EB;}
+  .report-card.vermelho::before{background:var(--perigo);}
+  .report-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.08);}
+  .report-icon{font-size:28px;margin-bottom:12px;}
+  .report-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+  .report-desc{font-size:13px;color:var(--cinza);line-height:1.5;margin-bottom:16px;}
+  .report-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .meta-tag{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--bg);color:var(--cinza);font-weight:500;}
+  .btn-gerar{width:100%;padding:11px;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+  .btn-gerar:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-gerar:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .btn-gerar.verde{background:var(--verde);}
+  .btn-gerar.ouro{background:#B8A000;color:#fff;}
+  .btn-gerar.azul{background:#2563EB;}
+  .btn-gerar.vermelho{background:var(--perigo);}
+  .filtros-card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:24px;margin-bottom:24px;}
+  .filtros-titulo{font-size:15px;font-weight:600;margin-bottom:16px;}
+  .filtros-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+  .filtro-field{display:flex;flex-direction:column;gap:6px;}
+  .filtro-field label{font-size:12px;font-weight:600;color:var(--cinza);}
+  .filtro-select{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:#fff;}
+  .filtro-select:focus{border-color:var(--verde);}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--verde-escuro);color:#fff;padding:14px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.reports-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div><span>EduMoz</span><small>MEC · Moçambique</small></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="dashboard.html" class="sb-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="relatorios.html" class="sb-item active"><span class="icon">📈</span> Relatórios PDF</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="escolas.html" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+    <a href="alunos.html" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="#" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="#" class="sb-item"><span class="icon">📝</span> Notas</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="logout(event)"><span class="icon">🚪</span> Sair</a>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Relatórios PDF</h1></div>
+  </div>
+  <div class="content">
+
+    <div class="filtros-card">
+      <div class="filtros-titulo">Filtros para todos os relatórios</div>
+      <div class="filtros-row">
+        <div class="filtro-field">
+          <label>Ano Lectivo</label>
+          <select class="filtro-select" id="f-ano">
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
+        <div class="filtro-field">
+          <label>Província</label>
+          <select class="filtro-select" id="f-provincia">
+            <option value="Nacional">Nacional (todas)</option>
+            <option>Maputo Cidade</option><option>Maputo Provincia</option>
+            <option>Gaza</option><option>Inhambane</option><option>Sofala</option>
+            <option>Manica</option><option>Tete</option><option>Zambezia</option>
+            <option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option>
+          </select>
+        </div>
+        <div class="filtro-field">
+          <label>Tipo de Escola</label>
+          <select class="filtro-select" id="f-tipo">
+            <option value="Todos">Todos os tipos</option>
+            <option value="EP1">EP1</option>
+            <option value="EP2">EP2</option>
+            <option value="ESG1">ESG1</option>
+            <option value="ESG2">ESG2</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Relatórios Disponíveis</div>
+    <div class="reports-grid">
+      <div class="report-card verde">
+        <div class="report-icon">📊</div>
+        <div class="report-title">Relatório de Matrículas</div>
+        <div class="report-desc">Estatísticas completas de matrículas por província, género, série e evolução temporal.</div>
+        <div class="report-meta"><span class="meta-tag">Matrículas</span><span class="meta-tag">Género</span><span class="meta-tag">Províncias</span></div>
+        <button class="btn-gerar verde" onclick="gerarRelatorioMatriculas(this)">⬇ Gerar PDF</button>
+      </div>
+      <div class="report-card ouro">
+        <div class="report-icon">✅</div>
+        <div class="report-title">Relatório de Desempenho</div>
+        <div class="report-desc">Taxas de aprovação, reprovação e comparativo entre escolas e províncias.</div>
+        <div class="report-meta"><span class="meta-tag">Aprovação</span><span class="meta-tag">Reprovação</span><span class="meta-tag">Comparativo</span></div>
+        <button class="btn-gerar ouro" onclick="gerarRelatorioDesempenho(this)">⬇ Gerar PDF</button>
+      </div>
+      <div class="report-card vermelho">
+        <div class="report-icon">⚠️</div>
+        <div class="report-title">Relatório de Evasão Escolar</div>
+        <div class="report-desc">Taxa de evasão por escola e região, causas identificadas e tendências.</div>
+        <div class="report-meta"><span class="meta-tag">Evasão</span><span class="meta-tag">Causas</span><span class="meta-tag">Tendências</span></div>
+        <button class="btn-gerar vermelho" onclick="gerarRelatorioEvasao(this)">⬇ Gerar PDF</button>
+      </div>
+      <div class="report-card azul">
+        <div class="report-icon">👩‍🏫</div>
+        <div class="report-title">Relatório de Recursos Humanos</div>
+        <div class="report-desc">Ratio professor/aluno, professores qualificados e necessidades por região.</div>
+        <div class="report-meta"><span class="meta-tag">Professores</span><span class="meta-tag">Ratio</span><span class="meta-tag">Necessidades</span></div>
+        <button class="btn-gerar azul" onclick="gerarRelatorioRH(this)">⬇ Gerar PDF</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">📄 PDF gerado com sucesso!</div>
+
+<script>
+// AUTH
+var __u=(function(){try{var u=JSON.parse(sessionStorage.getItem('edumoz_user'));if(u&&u.loggedIn){var r={admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};var i=(u.nome||u.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();document.getElementById('sb-avatar').textContent=i;document.getElementById('sb-nome').textContent=u.nome||u.email;document.getElementById('sb-role').textContent=r[u.perfil]||u.perfil;return u;}else{window.location.href='login.html';}}catch(e){window.location.href='login.html';}})();
+function logout(e){e.preventDefault();if(confirm('Tem a certeza que quer sair?')){sessionStorage.removeItem('edumoz_user');window.location.href='login.html';}}
+
+var dadosProvincias=[
+  {nome:'Maputo Cidade',alunos:890000,escolas:312,prof:14200,apr:86.0,rep:6.0,eva:8.0,ratio:42},
+  {nome:'Maputo Prov.',alunos:620000,escolas:498,prof:11300,apr:82.0,rep:8.0,eva:10.0,ratio:45},
+  {nome:'Gaza',alunos:480000,escolas:624,prof:9100,apr:76.0,rep:11.0,eva:13.0,ratio:48},
+  {nome:'Inhambane',alunos:420000,escolas:712,prof:7800,apr:74.0,rep:11.0,eva:15.0,ratio:50},
+  {nome:'Sofala',alunos:550000,escolas:698,prof:9800,apr:73.0,rep:13.0,eva:14.0,ratio:52},
+  {nome:'Manica',alunos:380000,escolas:586,prof:6700,apr:71.0,rep:13.0,eva:16.0,ratio:55},
+  {nome:'Tete',alunos:510000,escolas:742,prof:8900,apr:70.0,rep:13.0,eva:17.0,ratio:57},
+  {nome:'Zambezia',alunos:720000,escolas:980,prof:11200,apr:69.0,rep:12.0,eva:19.0,ratio:61},
+  {nome:'Nampula',alunos:880000,escolas:1102,prof:13400,apr:72.0,rep:10.0,eva:18.0,ratio:58},
+  {nome:'Cabo Delgado',alunos:410000,escolas:698,prof:6200,apr:68.0,rep:10.0,eva:22.0,ratio:63},
+  {nome:'Niassa',alunos:310000,escolas:512,prof:4800,apr:66.0,rep:13.0,eva:21.0,ratio:67},
+];
+
+function getFiltros(){return{ano:document.getElementById('f-ano').value,provincia:document.getElementById('f-provincia').value,tipo:document.getElementById('f-tipo').value};}
+
+function setBtn(btn,loading){btn.disabled=loading;btn.textContent=loading?'A gerar...':'⬇ Gerar PDF';}
+
+function mostrarToast(msg){var t=document.getElementById('toast');t.textContent='📄 '+msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3500);}
+
+function cabecalho(doc,titulo,sub){
+  var f=getFiltros();
+  var W=doc.internal.pageSize.getWidth();
+  doc.setFillColor(0,75,43);doc.rect(0,0,W,28,'F');
+  doc.setFillColor(252,221,9);doc.rect(0,28,W,4,'F');
+  doc.setFillColor(204,0,0);doc.rect(0,32,W,3,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text('EduMoz',14,12);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('Ministerio da Educacao e Cultura - Republica de Mocambique',14,20);
+  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-PT'),W-14,12,{align:'right'});
+  doc.text('Ano Lectivo: '+f.ano,W-14,20,{align:'right'});
+  doc.setTextColor(0,75,43);doc.setFont('helvetica','bold');doc.setFontSize(18);
+  doc.text(titulo,14,50);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(100,100,100);
+  doc.text(sub+' | Provincia: '+f.provincia+' | Tipo: '+f.tipo,14,58);
+  doc.setDrawColor(0,107,60);doc.setLineWidth(0.5);doc.line(14,62,W-14,62);
+  return 70;
+}
+
+function rodape(doc){
+  var W=doc.internal.pageSize.getWidth();var H=doc.internal.pageSize.getHeight();
+  var n=doc.internal.getNumberOfPages();
+  for(var i=1;i<=n;i++){
+    doc.setPage(i);
+    doc.setFillColor(0,75,43);doc.rect(0,H-12,W,12,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text('EduMoz - Sistema de Administracao Educacional - MEC Mocambique',14,H-4);
+    doc.text('Pagina '+i+' de '+n,W-14,H-4,{align:'right'});
+  }
+}
+
+function kpisRow(doc,kpis,y){
+  var W=doc.internal.pageSize.getWidth();
+  var kW=(W-28)/kpis.length;
+  kpis.forEach(function(k,i){
+    var x=14+i*kW;
+    doc.setFillColor(245,247,244);doc.roundedRect(x,y,kW-3,22,2,2,'F');
+    doc.setTextColor(k.cor[0],k.cor[1],k.cor[2]);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text(String(k.val),x+(kW-3)/2,y+11,{align:'center'});
+    doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');doc.setFontSize(7);
+    doc.text(k.label,x+(kW-3)/2,y+19,{align:'center'});
+  });
+  return y+30;
+}
+
+function gerarRelatorioMatriculas(btn){
+  setBtn(btn,true);
+  var f=getFiltros();
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var y=cabecalho(doc,'Relatorio de Matriculas','Estatisticas nacionais de matriculas por provincia e genero');
+  var total=dadosProvincias.reduce(function(s,p){return s+p.alunos;},0);
+  y=kpisRow(doc,[
+    {label:'Total de Alunos',val:(total/1000000).toFixed(1)+'M',cor:[0,107,60]},
+    {label:'Total de Escolas',val:dadosProvincias.reduce(function(s,p){return s+p.escolas;},0).toLocaleString(),cor:[37,99,235]},
+    {label:'Provincias',val:'11',cor:[0,107,60]},
+    {label:'Crescimento vs 2024',val:'+8.3%',cor:[0,166,90]},
+  ],y);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(0,75,43);
+  doc.text('Matriculas por Provincia - '+f.ano,14,y);
+  doc.autoTable({
+    startY:y+4,
+    head:[['Provincia','Total Alunos','Masculino','Feminino','% Raparigas','Escolas']],
+    body:dadosProvincias.map(function(p){var m=Math.round(p.alunos*.512);return[p.nome,p.alunos.toLocaleString(),m.toLocaleString(),(p.alunos-m).toLocaleString(),((1-0.512)*100).toFixed(1)+'%',p.escolas.toLocaleString()];}),
+    theme:'grid',headStyles:{fillColor:[0,75,43],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,250,247]},columnStyles:{0:{fontStyle:'bold'}},margin:{left:14,right:14},
+  });
+  var fy=doc.lastAutoTable.finalY+12;
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(0,75,43);
+  doc.text('Evolucao de Matriculas 2019-2025',14,fy);
+  doc.autoTable({
+    startY:fy+4,
+    head:[['Ano','Total','Masculino','Feminino']],
+    body:[['2019','4 000 000','2 100 000','1 900 000'],['2020','4 250 000','2 200 000','2 050 000'],['2021','4 500 000','2 350 000','2 150 000'],['2022','4 700 000','2 400 000','2 300 000'],['2023','4 900 000','2 500 000','2 400 000'],['2024','5 250 000','2 700 000','2 550 000'],['2025','5 700 000','2 900 000','2 800 000']],
+    theme:'striped',headStyles:{fillColor:[0,107,60],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},margin:{left:14,right:14},
+  });
+  rodape(doc);
+  doc.save('EduMoz-Matriculas-'+f.ano+'.pdf');
+  setBtn(btn,false);mostrarToast('Relatorio de Matriculas exportado!');
+}
+
+function gerarRelatorioDesempenho(btn){
+  setBtn(btn,true);
+  var f=getFiltros();
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var y=cabecalho(doc,'Relatorio de Desempenho Academico','Taxa de aprovacao, reprovacao e comparativo entre provincias');
+  var mA=(dadosProvincias.reduce(function(s,p){return s+p.apr;},0)/dadosProvincias.length).toFixed(1);
+  var mR=(dadosProvincias.reduce(function(s,p){return s+p.rep;},0)/dadosProvincias.length).toFixed(1);
+  y=kpisRow(doc,[
+    {label:'Media de Aprovacao',val:mA+'%',cor:[0,107,60]},
+    {label:'Media de Reprovacao',val:mR+'%',cor:[220,38,38]},
+    {label:'Melhor Provincia',val:'Maputo C.',cor:[37,99,235]},
+    {label:'Provincia em Alerta',val:'Niassa',cor:[217,119,6]},
+  ],y);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(0,75,43);
+  doc.text('Desempenho por Provincia - '+f.ano,14,y);
+  doc.autoTable({
+    startY:y+4,
+    head:[['Provincia','Aprovacao','Reprovacao','Evasao','Total Alunos','Estado']],
+    body:dadosProvincias.map(function(p){return[p.nome,p.apr+'%',p.rep+'%',p.eva+'%',p.alunos.toLocaleString(),p.apr>=80?'Bom':p.apr>=70?'Medio':'Critico'];}),
+    theme:'grid',headStyles:{fillColor:[0,75,43],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,250,247]},columnStyles:{0:{fontStyle:'bold'}},margin:{left:14,right:14},
+  });
+  rodape(doc);
+  doc.save('EduMoz-Desempenho-'+f.ano+'.pdf');
+  setBtn(btn,false);mostrarToast('Relatorio de Desempenho exportado!');
+}
+
+function gerarRelatorioEvasao(btn){
+  setBtn(btn,true);
+  var f=getFiltros();
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var y=cabecalho(doc,'Relatorio de Evasao Escolar','Analise de evasao por provincia, causas e tendencias');
+  var mE=(dadosProvincias.reduce(function(s,p){return s+p.eva;},0)/dadosProvincias.length).toFixed(1);
+  y=kpisRow(doc,[
+    {label:'Media de Evasao',val:mE+'%',cor:[220,38,38]},
+    {label:'Provincias em Alerta',val:dadosProvincias.filter(function(p){return p.eva>18;}).length,cor:[217,119,6]},
+    {label:'Maior Taxa',val:'C.Delgado 22%',cor:[220,38,38]},
+    {label:'Menor Taxa',val:'Maputo C. 8%',cor:[0,107,60]},
+  ],y);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(220,38,38);
+  doc.text('Taxa de Evasao por Provincia (ordenado do maior para menor)',14,y);
+  var sorted=dadosProvincias.slice().sort(function(a,b){return b.eva-a.eva;});
+  doc.autoTable({
+    startY:y+4,
+    head:[['Provincia','Taxa Evasao','Total Alunos','Evadidos Estimados','Estado']],
+    body:sorted.map(function(p){return[p.nome,p.eva+'%',p.alunos.toLocaleString(),Math.round(p.alunos*p.eva/100).toLocaleString(),p.eva>18?'CRITICO':p.eva>13?'ATENCAO':'BOM'];}),
+    theme:'grid',headStyles:{fillColor:[180,20,20],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[255,248,248]},columnStyles:{0:{fontStyle:'bold'},1:{fontStyle:'bold'}},margin:{left:14,right:14},
+  });
+  var fy=doc.lastAutoTable.finalY+12;
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(0,75,43);
+  doc.text('Principais Causas de Evasao',14,fy);
+  doc.autoTable({
+    startY:fy+4,
+    head:[['Causa','Percentagem','Observacoes']],
+    body:[['Pobreza familiar','38%','Principal causa nas zonas rurais'],['Gravidez precoce','22%','Afecta raparigas do ESG'],['Distancia da escola','18%','Zonas sem transporte escolar'],['Trabalho infantil','14%','Sector agricola'],['Outros','8%','Conflitos, doencas, migracoes']],
+    theme:'striped',headStyles:{fillColor:[0,75,43],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},margin:{left:14,right:14},
+  });
+  rodape(doc);
+  doc.save('EduMoz-Evasao-'+f.ano+'.pdf');
+  setBtn(btn,false);mostrarToast('Relatorio de Evasao exportado!');
+}
+
+function gerarRelatorioRH(btn){
+  setBtn(btn,true);
+  var f=getFiltros();
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var y=cabecalho(doc,'Relatorio de Recursos Humanos','Distribuicao de professores, ratio e necessidades por provincia');
+  var tP=dadosProvincias.reduce(function(s,p){return s+p.prof;},0);
+  var mR=(dadosProvincias.reduce(function(s,p){return s+p.ratio;},0)/dadosProvincias.length).toFixed(0);
+  y=kpisRow(doc,[
+    {label:'Total Professores',val:tP.toLocaleString(),cor:[0,107,60]},
+    {label:'Ratio Medio',val:'1:'+mR,cor:[37,99,235]},
+    {label:'Melhor Ratio',val:'Maputo 1:42',cor:[0,107,60]},
+    {label:'Pior Ratio',val:'Niassa 1:67',cor:[220,38,38]},
+  ],y);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(0,75,43);
+  doc.text('Recursos Humanos por Provincia - '+f.ano,14,y);
+  doc.autoTable({
+    startY:y+4,
+    head:[['Provincia','Professores','Alunos','Ratio','Necessidade','A Contratar']],
+    body:dadosProvincias.map(function(p){var n=p.ratio>55?'Alta':p.ratio>48?'Media':'Baixa';var c=p.ratio>55?'+'+Math.round((p.alunos/48)-p.prof):'OK';return[p.nome,p.prof.toLocaleString(),p.alunos.toLocaleString(),'1:'+p.ratio,n,c];}),
+    theme:'grid',headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,248,255]},columnStyles:{0:{fontStyle:'bold'}},margin:{left:14,right:14},
+  });
+  rodape(doc);
+  doc.save('EduMoz-RecursosHumanos-'+f.ano+'.pdf');
+  setBtn(btn,false);mostrarToast('Relatorio de Recursos Humanos exportado!');
+}
+</script>
+</body>
+</html>
