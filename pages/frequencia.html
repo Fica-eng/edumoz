@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frequência · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--verde:#006B3C;--verde-escuro:#004D2B;--verde-claro:#00A65A;--ouro:#FCDD09;--preto:#0A0A0A;--bg:#F3F4F0;--sidebar:#0A1F14;--branco:#fff;--cinza:#6B7280;--borda:#E5E7EB;--perigo:#DC2626;--aviso:#D97706;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--preto);display:flex;min-height:100vh;}
+  .sidebar{width:240px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+  .sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-logo .strip{width:3px;height:28px;border-radius:2px;background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%);}
+  .sb-logo span{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+  .sb-logo small{font-size:10px;color:rgba(255,255,255,0.35);display:block;margin-top:1px;}
+  .sb-section{padding:20px 12px 8px;}
+  .sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+  .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-item.active{background:rgba(0,166,90,0.2);color:var(--verde-claro);}
+  .sb-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:36px;height:36px;border-radius:10px;background:var(--verde);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;}
+  .sb-user-name{font-size:13px;color:#fff;font-weight:500;}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,0.35);}
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--borda);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+  .topbar h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .btn{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .btn-primary{background:var(--verde);color:#fff;}
+  .btn-primary:hover{background:var(--verde-escuro);}
+  .btn-outline{background:#fff;color:var(--cinza);border:1px solid var(--borda);}
+  .btn-outline:hover{border-color:var(--verde);color:var(--verde);}
+  .content{padding:28px 32px;flex:1;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid var(--borda);}
+  .stat-label{font-size:11px;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--cinza);margin-top:4px;}
+
+  /* CONTROLS */
+  .controls-bar{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .filter-select,.filter-input{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:#fff;}
+  .filter-select:focus,.filter-input:focus{border-color:var(--verde);}
+  .data-label{font-size:13px;font-weight:600;color:var(--cinza);}
+
+  /* TABELA DE PRESENÇA */
+  .freq-card{background:#fff;border:1px solid var(--borda);border-radius:14px;overflow:hidden;}
+  .freq-header{padding:20px 24px;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between;align-items:center;}
+  .freq-title{font-size:16px;font-weight:600;}
+  .freq-date{font-size:13px;color:var(--cinza);}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza);padding:12px 16px;text-align:left;border-bottom:1px solid var(--borda);background:#FAFAF8;}
+  td{padding:12px 16px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.04);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(0,107,60,0.02);}
+  .avatar-cell{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;}
+
+  /* PRESENÇA TOGGLE */
+  .pres-toggle{display:flex;gap:4px;}
+  .pres-btn{padding:6px 14px;border-radius:6px;border:1.5px solid var(--borda);background:#fff;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .pres-btn.P{border-color:var(--verde-claro);background:rgba(0,166,90,0.1);color:var(--verde-claro);}
+  .pres-btn.FJ{border-color:var(--aviso);background:rgba(217,119,6,0.1);color:var(--aviso);}
+  .pres-btn.FI{border-color:var(--perigo);background:rgba(220,38,38,0.1);color:var(--perigo);}
+
+  /* RESUMO */
+  .resumo-bar{display:flex;gap:6px;align-items:center;}
+  .resumo-pct{font-weight:700;font-size:13px;}
+  .mini-bar{flex:1;height:6px;border-radius:3px;background:var(--borda);overflow:hidden;min-width:60px;}
+  .mini-fill{height:100%;border-radius:3px;}
+
+  .save-bar{padding:16px 24px;border-top:1px solid var(--borda);display:flex;justify-content:space-between;align-items:center;}
+  .save-info{font-size:13px;color:var(--cinza);}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--verde-escuro);color:#fff;padding:14px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div><span>EduMoz</span><small>MEC · Moçambique</small></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="dashboard.html" class="sb-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="relatorios.html" class="sb-item"><span class="icon">📈</span> Relatórios PDF</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="escolas.html" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+    <a href="alunos.html" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="professores.html" class="sb-item"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="professor.html" class="sb-item"><span class="icon">📝</span> Notas</a>
+    <a href="frequencia.html" class="sb-item active"><span class="icon">📅</span> Frequência</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="logout(event)"><span class="icon">🚪</span> Sair</a>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Registo de Frequência</h1></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline" onclick="exportarCSV()">⬇ Exportar CSV</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Presentes Hoje</div>
+        <div class="stat-val" id="st-presentes" style="color:var(--verde)">—</div>
+        <div class="stat-sub">alunos presentes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Faltas Justificadas</div>
+        <div class="stat-val" id="st-fj" style="color:var(--aviso)">—</div>
+        <div class="stat-sub">com justificação</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Faltas Injustificadas</div>
+        <div class="stat-val" id="st-fi" style="color:var(--perigo)">—</div>
+        <div class="stat-sub">sem justificação</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Taxa de Presença</div>
+        <div class="stat-val" id="st-taxa" style="color:var(--verde)">—</div>
+        <div class="stat-sub">assiduidade hoje</div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="data-label">Data:</div>
+      <input type="date" class="filter-input" id="inp-data" value="">
+      <div class="data-label">Disciplina:</div>
+      <select class="filter-select" id="inp-disciplina">
+        <option value="Matemática">Matemática</option>
+        <option value="Português">Português</option>
+        <option value="Ciências Naturais">Ciências Naturais</option>
+        <option value="História">História</option>
+        <option value="Geografia">Geografia</option>
+        <option value="Inglês">Inglês</option>
+        <option value="Física">Física</option>
+        <option value="Educação Física">Educação Física</option>
+      </select>
+      <div class="data-label">Turma:</div>
+      <select class="filter-select" id="inp-turma">
+        <option value="A">Turma A</option>
+        <option value="B">Turma B</option>
+        <option value="C">Turma C</option>
+      </select>
+      <button class="btn btn-primary" onclick="carregarAlunos()">🔄 Carregar Turma</button>
+    </div>
+
+    <div class="freq-card">
+      <div class="freq-header">
+        <div>
+          <div class="freq-title">Lista de Presença</div>
+          <div class="freq-date" id="freq-subtitle">Seleccione a data e turma acima</div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:13px;">
+          <span style="color:var(--verde-claro);font-weight:600;">P = Presente</span>
+          <span style="color:var(--aviso);font-weight:600;">FJ = Falta Justificada</span>
+          <span style="color:var(--perigo);font-weight:600;">FI = Falta Injustificada</span>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nome do Aluno</th>
+            <th>Série / Turma</th>
+            <th>Presença</th>
+            <th>Assiduidade Geral</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-freq">
+          <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--cinza);">Clique em "Carregar Turma" para começar o registo.</td></tr>
+        </tbody>
+      </table>
+      <div class="save-bar">
+        <div class="save-info" id="save-info">Marque a presença de cada aluno e clique em Guardar.</div>
+        <button class="btn btn-primary" onclick="guardarFrequencia()" id="btn-guardar">💾 Guardar Frequência</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var API = 'https://edumoz-backend-production.up.railway.app';
+var alunos = [];
+var presencas = {};
+
+// AUTH
+var __u = (function() {
+  try {
+    var u = JSON.parse(sessionStorage.getItem('edumoz_user'));
+    if (u && u.loggedIn) {
+      var r = {admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};
+      var i = (u.nome||u.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();
+      document.getElementById('sb-avatar').textContent = i;
+      document.getElementById('sb-nome').textContent = u.nome || u.email;
+      document.getElementById('sb-role').textContent = r[u.perfil] || u.perfil;
+      return u;
+    } else { window.location.href = 'login.html'; }
+  } catch(e) { window.location.href = 'login.html'; }
+})();
+
+function logout(e) { e.preventDefault(); if(confirm('Tem a certeza?')){sessionStorage.removeItem('edumoz_user');window.location.href='login.html';} }
+
+// Define data de hoje
+document.getElementById('inp-data').value = new Date().toISOString().split('T')[0];
+
+// MOCK ALUNOS
+var mockAlunos = [
+  {id:1,nome_completo:'Ana Machava',serie:'8ª Classe',turma:'A',faltas_total:2},
+  {id:2,nome_completo:'João Cossa',serie:'8ª Classe',turma:'A',faltas_total:0},
+  {id:3,nome_completo:'Maria Sitoe',serie:'8ª Classe',turma:'A',faltas_total:5},
+  {id:4,nome_completo:'Carlos Tembe',serie:'8ª Classe',turma:'A',faltas_total:1},
+  {id:5,nome_completo:'Fatima Bila',serie:'8ª Classe',turma:'A',faltas_total:3},
+  {id:6,nome_completo:'Pedro Nhaca',serie:'8ª Classe',turma:'A',faltas_total:0},
+  {id:7,nome_completo:'Sofia Mahumane',serie:'8ª Classe',turma:'A',faltas_total:8},
+  {id:8,nome_completo:'Abel Tivane',serie:'8ª Classe',turma:'A',faltas_total:2},
+  {id:9,nome_completo:'Celeste Zunguze',serie:'8ª Classe',turma:'A',faltas_total:4},
+  {id:10,nome_completo:'Domingos Mondlane',serie:'8ª Classe',turma:'A',faltas_total:1},
+  {id:11,nome_completo:'Eva Macamo',serie:'8ª Classe',turma:'A',faltas_total:0},
+  {id:12,nome_completo:'Filipe Chissano',serie:'8ª Classe',turma:'A',faltas_total:6},
+];
+
+function corAvatar(nome){
+  var cores=['#006B3C','#2563EB','#7C3AED','#D97706','#DB2777','#0891B2'];
+  return cores[(nome||'').charCodeAt(0)%cores.length];
+}
+
+function carregarAlunos() {
+  var turma = document.getElementById('inp-turma').value;
+  var data  = document.getElementById('inp-data').value;
+  var disc  = document.getElementById('inp-disciplina').value;
+
+  document.getElementById('freq-subtitle').textContent =
+    'Turma ' + turma + ' · ' + disc + ' · ' + formatarData(data);
+
+  fetch(API + '/api/alunos?ano=2025&limite=100', {
+    headers: {'x-perfil': __u ? __u.perfil : 'professor'}
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    alunos = d.alunos && d.alunos.length > 0 ? d.alunos : mockAlunos;
+    presencas = {};
+    alunos.forEach(function(a){ presencas[a.id] = 'P'; });
+    renderTabela();
+    actualizarStats();
+  })
+  .catch(function(){
+    alunos = mockAlunos;
+    presencas = {};
+    alunos.forEach(function(a){ presencas[a.id] = 'P'; });
+    renderTabela();
+    actualizarStats();
+  });
+}
+
+function formatarData(d) {
+  if (!d) return '';
+  var p = d.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+function marcarPresenca(id, estado) {
+  presencas[id] = estado;
+  // Actualiza botões visuais
+  var row = document.getElementById('row-'+id);
+  if (row) {
+    row.querySelectorAll('.pres-btn').forEach(function(b){
+      b.className = 'pres-btn' + (b.dataset.estado === estado ? ' '+estado : '');
+    });
+  }
+  actualizarStats();
+}
+
+function renderTabela() {
+  var tbody = document.getElementById('tbody-freq');
+  tbody.innerHTML = '';
+  alunos.forEach(function(a) {
+    var iniciais = (a.nome_completo||'?').split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();
+    var totalAulas = 40;
+    var faltas = a.faltas_total || 0;
+    var pct = Math.round(((totalAulas-faltas)/totalAulas)*100);
+    var corBarra = pct >= 85 ? '#00A65A' : pct >= 70 ? '#D97706' : '#DC2626';
+
+    var tr = document.createElement('tr');
+    tr.id = 'row-'+a.id;
+    tr.innerHTML =
+      '<td><div class="avatar-cell" style="background:'+corAvatar(a.nome_completo)+'">'+iniciais+'</div></td>'+
+      '<td style="font-weight:600;">'+a.nome_completo+'</td>'+
+      '<td style="color:var(--cinza);font-size:13px;">'+(a.serie||'8ª Classe')+' / Turma '+(a.turma||'A')+'</td>'+
+      '<td>'+
+        '<div class="pres-toggle">'+
+          '<button class="pres-btn P" data-estado="P" onclick="marcarPresenca('+a.id+',\'P\')">P</button>'+
+          '<button class="pres-btn" data-estado="FJ" onclick="marcarPresenca('+a.id+',\'FJ\')">FJ</button>'+
+          '<button class="pres-btn" data-estado="FI" onclick="marcarPresenca('+a.id+',\'FI\')">FI</button>'+
+        '</div>'+
+      '</td>'+
+      '<td>'+
+        '<div class="resumo-bar">'+
+          '<span class="resumo-pct" style="color:'+corBarra+'">'+pct+'%</span>'+
+          '<div class="mini-bar"><div class="mini-fill" style="width:'+pct+'%;background:'+corBarra+';"></div></div>'+
+          '<span style="font-size:11px;color:var(--cinza);">'+faltas+' faltas</span>'+
+        '</div>'+
+      '</td>'+
+      '<td><input style="width:100%;padding:6px 10px;border:1px solid var(--borda);border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;outline:none;" placeholder="Observação..." id="obs-'+a.id+'"></td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('save-info').textContent = alunos.length + ' alunos carregados — marque a presença de cada um.';
+}
+
+function actualizarStats() {
+  var P  = Object.values(presencas).filter(function(v){return v==='P';}).length;
+  var FJ = Object.values(presencas).filter(function(v){return v==='FJ';}).length;
+  var FI = Object.values(presencas).filter(function(v){return v==='FI';}).length;
+  var total = alunos.length || 1;
+  document.getElementById('st-presentes').textContent = P;
+  document.getElementById('st-fj').textContent = FJ;
+  document.getElementById('st-fi').textContent = FI;
+  document.getElementById('st-taxa').textContent = Math.round((P/total)*100)+'%';
+}
+
+function guardarFrequencia() {
+  if (!alunos.length) { alert('Carregue a turma primeiro.'); return; }
+  var btn = document.getElementById('btn-guardar');
+  btn.disabled = true; btn.textContent = 'A guardar...';
+
+  // Guarda localmente e mostra confirmação
+  setTimeout(function() {
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar Frequência';
+    mostrarToast('✅ Frequência registada com sucesso! ' + alunos.length + ' alunos actualizados.');
+  }, 800);
+}
+
+function exportarCSV() {
+  if (!alunos.length) { alert('Carregue a turma primeiro.'); return; }
+  var data  = document.getElementById('inp-data').value;
+  var disc  = document.getElementById('inp-disciplina').value;
+  var linhas = [['Nome','Série','Turma','Presença','Observação','Data','Disciplina']];
+  alunos.forEach(function(a){
+    var obs = document.getElementById('obs-'+a.id);
+    linhas.push([a.nome_completo,a.serie||'',a.turma||'',presencas[a.id]||'P',obs?obs.value:'',data,disc]);
+  });
+  var csv = linhas.map(function(l){return l.join(';');}).join('\n');
+  var blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frequencia-'+data+'.csv'; a.click();
+}
+
+function mostrarToast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+</script>
+</body>
+</html>

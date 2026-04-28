@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professores · EduMoz — MEC Moçambique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--verde:#006B3C;--verde-escuro:#004D2B;--verde-claro:#00A65A;--ouro:#FCDD09;--preto:#0A0A0A;--bg:#F3F4F0;--sidebar:#0A1F14;--branco:#fff;--cinza:#6B7280;--borda:#E5E7EB;--perigo:#DC2626;--aviso:#D97706;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--preto);display:flex;min-height:100vh;}
+  .sidebar{width:240px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:50;}
+  .sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-logo .strip{width:3px;height:28px;border-radius:2px;background:linear-gradient(to bottom,var(--verde-claro) 33%,var(--ouro) 33%,var(--ouro) 66%,#CC0000 66%);}
+  .sb-logo span{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
+  .sb-logo small{font-size:10px;color:rgba(255,255,255,0.35);display:block;margin-top:1px;}
+  .sb-section{padding:20px 12px 8px;}
+  .sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,0.55);font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+  .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-item.active{background:rgba(0,166,90,0.2);color:var(--verde-claro);}
+  .sb-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:36px;height:36px;border-radius:10px;background:var(--verde);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;}
+  .sb-user-name{font-size:13px;color:#fff;font-weight:500;}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,0.35);}
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--borda);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+  .topbar h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .btn{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .btn-primary{background:var(--verde);color:#fff;}
+  .btn-primary:hover{background:var(--verde-escuro);}
+  .btn-outline{background:#fff;color:var(--cinza);border:1px solid var(--borda);}
+  .btn-outline:hover{border-color:var(--verde);color:var(--verde);}
+  .btn-danger{background:rgba(220,38,38,0.1);color:var(--perigo);border:1px solid rgba(220,38,38,0.2);}
+  .btn-danger:hover{background:var(--perigo);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+  .content{padding:28px 32px;flex:1;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid var(--borda);}
+  .stat-label{font-size:11px;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--cinza);margin-top:4px;}
+  .filters-bar{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .search-box{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:260px;outline:none;font-family:'DM Sans',sans-serif;}
+  .search-box:focus{border-color:var(--verde);}
+  .filter-select{padding:9px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;background:#fff;cursor:pointer;}
+  .results-count{margin-left:auto;font-size:13px;color:var(--cinza);}
+  .table-card{background:#fff;border-radius:14px;border:1px solid var(--borda);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza);padding:12px 16px;text-align:left;border-bottom:1px solid var(--borda);background:#FAFAF8;}
+  td{padding:13px 16px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.04);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(0,107,60,0.02);}
+  .qual-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;}
+  .qual-lic{background:rgba(0,107,60,0.1);color:var(--verde);}
+  .qual-bach{background:rgba(37,99,235,0.1);color:#2563EB;}
+  .qual-medio{background:rgba(217,119,6,0.1);color:var(--aviso);}
+  .status-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;}
+  .status-pill.ativo{background:rgba(0,166,90,0.1);color:var(--verde-claro);}
+  .status-pill.inativo{background:rgba(220,38,38,0.1);color:var(--perigo);}
+  .acoes{display:flex;gap:6px;}
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--borda);}
+  .pag-info{font-size:13px;color:var(--cinza);}
+  .pag-btns{display:flex;gap:6px;}
+  .pag-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--borda);background:#fff;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;}
+  .pag-btn.on{background:var(--verde);color:#fff;border-color:var(--verde);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--cinza);}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+  .field input,.field select{width:100%;padding:10px 14px;border:1.5px solid var(--borda);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;}
+  .field input:focus,.field select:focus{border-color:var(--verde);}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:20px;border-top:1px solid var(--borda);}
+  .loading{text-align:center;padding:48px;color:var(--cinza);font-size:14px;}
+  .avatar-cell{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+  .aviso-perfil{background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--aviso);display:none;}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="strip"></div>
+    <div><span>EduMoz</span><small>MEC · Moçambique</small></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Principal</div>
+    <a href="dashboard.html" class="sb-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="relatorios.html" class="sb-item"><span class="icon">📈</span> Relatórios PDF</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Gestão</div>
+    <a href="escolas.html" class="sb-item"><span class="icon">🏫</span> Escolas</a>
+    <a href="alunos.html" class="sb-item"><span class="icon">👨‍🎓</span> Alunos</a>
+    <a href="professores.html" class="sb-item active"><span class="icon">👩‍🏫</span> Professores</a>
+    <a href="professor.html" class="sb-item"><span class="icon">📝</span> Notas</a>
+    <a href="frequencia.html" class="sb-item"><span class="icon">📅</span> Frequência</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Sistema</div>
+    <a href="../index.html" class="sb-item"><span class="icon">🏠</span> Página Inicial</a>
+    <a href="login.html" class="sb-item" style="color:rgba(220,80,80,0.7);" onclick="logout(event)"><span class="icon">🚪</span> Sair</a>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">AM</div>
+    <div>
+      <div class="sb-user-name" id="sb-nome">Admin MEC</div>
+      <div class="sb-user-role" id="sb-role">Administrador Nacional</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Gestão de Professores</h1></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-primary" id="btn-novo" onclick="abrirModal()">+ Novo Professor</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="aviso-perfil" id="aviso-perfil">
+      ⚠️ O seu perfil não tem permissão para registar professores. Apenas o Coordenador Regional e o Admin MEC podem adicionar professores.
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total de Professores</div>
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-sub">registados no sistema</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Licenciados</div>
+        <div class="stat-val" id="st-lic" style="color:var(--verde)">—</div>
+        <div class="stat-sub">com licenciatura</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Nível Médio</div>
+        <div class="stat-val" id="st-medio" style="color:var(--aviso)">—</div>
+        <div class="stat-sub">formação média</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Activos</div>
+        <div class="stat-val" id="st-ativos" style="color:var(--verde-claro)">—</div>
+        <div class="stat-sub">em exercício</div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <input class="search-box" placeholder="🔍  Pesquisar professor..." oninput="filtrar()" id="search-input">
+      <select class="filter-select" onchange="filtrar()" id="filter-provincia">
+        <option value="">Todas as províncias</option>
+        <option>Maputo Cidade</option><option>Maputo Província</option>
+        <option>Gaza</option><option>Inhambane</option><option>Sofala</option>
+        <option>Manica</option><option>Tete</option><option>Zambézia</option>
+        <option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option>
+      </select>
+      <select class="filter-select" onchange="filtrar()" id="filter-qual">
+        <option value="">Todas as qualificações</option>
+        <option value="Licenciatura">Licenciatura</option>
+        <option value="Bacharelato">Bacharelato</option>
+        <option value="Nível Médio">Nível Médio</option>
+      </select>
+      <span class="results-count" id="results-count"></span>
+    </div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nome Completo</th>
+            <th>Género</th>
+            <th>Qualificação</th>
+            <th>Disciplinas</th>
+            <th>Província</th>
+            <th>Estado</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-professores">
+          <tr><td colspan="8" class="loading">A carregar professores...</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pag-info" id="pag-info">—</span>
+        <div class="pag-btns" id="pag-btns"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Registar Professor</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-grid">
+      <div class="field" style="grid-column:1/-1;">
+        <label>Nome Completo *</label>
+        <input type="text" id="f-nome" placeholder="Ex: Maria José Sitoe">
+      </div>
+      <div class="field">
+        <label>Género *</label>
+        <select id="f-genero">
+          <option value="">Seleccione...</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Data de Nascimento</label>
+        <input type="date" id="f-nasc">
+      </div>
+      <div class="field">
+        <label>Qualificação *</label>
+        <select id="f-qual">
+          <option value="">Seleccione...</option>
+          <option value="Licenciatura">Licenciatura</option>
+          <option value="Bacharelato">Bacharelato</option>
+          <option value="Nível Médio">Nível Médio</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Província *</label>
+        <select id="f-provincia">
+          <option value="">Seleccione...</option>
+          <option>Maputo Cidade</option><option>Maputo Província</option>
+          <option>Gaza</option><option>Inhambane</option><option>Sofala</option>
+          <option>Manica</option><option>Tete</option><option>Zambézia</option>
+          <option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Disciplinas que lecciona</label>
+        <input type="text" id="f-disc" placeholder="Ex: Matemática, Física (separe por vírgula)">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Escola onde está alocado</label>
+        <select id="f-escola">
+          <option value="">Seleccione a escola...</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProfessor()" id="btn-guardar">Registar Professor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = 'https://edumoz-backend-production.up.railway.app';
+var todosProfessores = [];
+var profFiltrados = [];
+var paginaActual = 1;
+var porPagina = 15;
+
+// AUTH
+var __u = (function() {
+  try {
+    var u = JSON.parse(sessionStorage.getItem('edumoz_user'));
+    if (u && u.loggedIn) {
+      var r = {admin:'Administrador Nacional',coordenador:'Coordenador Regional',diretor:'Director de Escola',professor:'Professor'};
+      var i = (u.nome||u.email).split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase();
+      document.getElementById('sb-avatar').textContent = i;
+      document.getElementById('sb-nome').textContent = u.nome || u.email;
+      document.getElementById('sb-role').textContent = r[u.perfil] || u.perfil;
+
+      // Esconde botão de adicionar se não for admin/coordenador
+      if (u.perfil !== 'admin' && u.perfil !== 'coordenador') {
+        document.getElementById('btn-novo').style.display = 'none';
+        document.getElementById('aviso-perfil').style.display = 'block';
+      }
+      return u;
+    } else { window.location.href = 'login.html'; }
+  } catch(e) { window.location.href = 'login.html'; }
+})();
+
+function logout(e) { e.preventDefault(); if(confirm('Tem a certeza?')){sessionStorage.removeItem('edumoz_user');window.location.href='login.html';} }
+
+// MOCK DATA
+var nomes = ['Carlos Machava','Maria Sitoe','João Tembe','Ana Bila','Pedro Cossa','Sofia Nhaca','Abel Mahumane','Graça Tivane','Henrique Zunguze','Isaura Mondlane'];
+var disciplinas = ['Matemática','Português','Ciências Naturais','História','Geografia','Inglês','Física','Química','Biologia','Educação Física'];
+var provincias = ['Maputo Cidade','Gaza','Sofala','Nampula','Zambézia','Niassa','Tete','Manica','Inhambane','Cabo Delgado','Maputo Província'];
+var quals = ['Licenciatura','Licenciatura','Bacharelato','Nível Médio'];
+
+var mockProfessores = [];
+for (var i = 0; i < 40; i++) {
+  mockProfessores.push({
+    id: i+1,
+    nome_completo: nomes[i%nomes.length] + ' ' + (i+1),
+    genero: i%3===0 ? 'F' : 'M',
+    qualificacao: quals[i%quals.length],
+    disciplinas: [disciplinas[i%disciplinas.length], disciplinas[(i+1)%disciplinas.length]],
+    provincia: provincias[i%provincias.length],
+    status: i%8===0 ? 'inativo' : 'ativo'
+  });
+}
+
+function carregarProfessores() {
+  fetch(API + '/api/professores?limite=200')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if (data.professores && data.professores.length > 0) todosProfessores = data.professores;
+      else todosProfessores = mockProfessores;
+      actualizarStats();
+      filtrar();
+    })
+    .catch(function(){
+      todosProfessores = mockProfessores;
+      actualizarStats();
+      filtrar();
+    });
+}
+
+function actualizarStats() {
+  var lic   = todosProfessores.filter(function(p){return p.qualificacao==='Licenciatura';}).length;
+  var medio = todosProfessores.filter(function(p){return p.qualificacao==='Nível Médio';}).length;
+  var ativ  = todosProfessores.filter(function(p){return p.status==='ativo';}).length;
+  document.getElementById('st-total').textContent  = todosProfessores.length;
+  document.getElementById('st-lic').textContent    = lic;
+  document.getElementById('st-medio').textContent  = medio;
+  document.getElementById('st-ativos').textContent = ativ;
+}
+
+function corAvatar(nome) {
+  var cores = ['#006B3C','#2563EB','#7C3AED','#D97706','#DB2777','#0891B2'];
+  return cores[(nome||'').charCodeAt(0) % cores.length];
+}
+
+function qualClasse(q) {
+  if (!q) return '';
+  if (q === 'Licenciatura') return 'qual-lic';
+  if (q === 'Bacharelato')  return 'qual-bach';
+  return 'qual-medio';
+}
+
+function filtrar() {
+  var q    = (document.getElementById('search-input').value||'').toLowerCase();
+  var prov = document.getElementById('filter-provincia').value;
+  var qual = document.getElementById('filter-qual').value;
+  profFiltrados = todosProfessores.filter(function(p){
+    return (!q || (p.nome_completo||'').toLowerCase().includes(q))
+        && (!prov || p.provincia === prov)
+        && (!qual || p.qualificacao === qual);
+  });
+  paginaActual = 1;
+  renderTabela();
+}
+
+function renderTabela() {
+  var tbody = document.getElementById('tbody-professores');
+  var total = profFiltrados.length;
+  var inicio = (paginaActual-1)*porPagina;
+  var pagina = profFiltrados.slice(inicio, inicio+porPagina);
+  document.getElementById('results-count').textContent = total + ' professor' + (total!==1?'es':'') + ' encontrado' + (total!==1?'s':'');
+
+  if (!pagina.length) { tbody.innerHTML = '<tr><td colspan="8" class="loading">Nenhum professor encontrado.</td></tr>'; return; }
+
+  tbody.innerHTML = '';
+  pagina.forEach(function(p) {
+    var iniciais = (p.nome_completo||'?').split(' ').map(function(x){return x[0];}).join('').substring(0,2).toUpperCase();
+    var discs = Array.isArray(p.disciplinas) ? p.disciplinas.join(', ') : (p.disciplinas||'—');
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><div class="avatar-cell" style="background:'+corAvatar(p.nome_completo)+'">'+iniciais+'</div></td>'+
+      '<td style="font-weight:600;">'+p.nome_completo+'</td>'+
+      '<td>'+(p.genero==='F'?'♀ Fem':'♂ Masc')+'</td>'+
+      '<td><span class="qual-pill '+qualClasse(p.qualificacao)+'">'+(p.qualificacao||'—')+'</span></td>'+
+      '<td style="font-size:12px;color:var(--cinza);">'+discs+'</td>'+
+      '<td>'+(p.provincia||'—')+'</td>'+
+      '<td><span class="status-pill '+(p.status||'ativo')+'">'+(p.status==='ativo'?'✓ Activo':'✗ Inactivo')+'</span></td>'+
+      '<td><div class="acoes">'+
+        '<button class="btn btn-outline btn-sm" onclick="editarProfessor('+p.id+')">✏️ Editar</button>'+
+        '<button class="btn btn-danger btn-sm" onclick="eliminarProfessor('+p.id+')">🗑</button>'+
+      '</div></td>';
+    tbody.appendChild(tr);
+  });
+
+  var totalPags = Math.ceil(total/porPagina);
+  document.getElementById('pag-info').textContent = 'Página '+paginaActual+' de '+totalPags+' ('+total+' professores)';
+  var btns = document.getElementById('pag-btns'); btns.innerHTML = '';
+  for (var i=1; i<=Math.min(totalPags,7); i++) {
+    var btn = document.createElement('button');
+    btn.className = 'pag-btn'+(i===paginaActual?' on':'');
+    btn.textContent = i;
+    btn.onclick = (function(pg){return function(){paginaActual=pg;renderTabela();};})(i);
+    btns.appendChild(btn);
+  }
+}
+
+function abrirModal() {
+  // Verifica permissão
+  if (__u && __u.perfil !== 'admin' && __u.perfil !== 'coordenador') {
+    alert('⚠️ Apenas o Coordenador Regional ou Admin MEC podem registar professores.');
+    return;
+  }
+  carregarEscolasSelect();
+  document.getElementById('modal').classList.add('show');
+}
+
+function fecharModal() { document.getElementById('modal').classList.remove('show'); }
+
+function carregarEscolasSelect() {
+  fetch(API + '/api/escolas?limite=200')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var sel = document.getElementById('f-escola');
+      sel.innerHTML = '<option value="">Seleccione a escola...</option>';
+      (data.escolas||[]).forEach(function(e){
+        var opt = document.createElement('option');
+        opt.value = e.id; opt.textContent = e.nome;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(function(){});
+}
+
+function guardarProfessor() {
+  var nome     = document.getElementById('f-nome').value.trim();
+  var genero   = document.getElementById('f-genero').value;
+  var qual     = document.getElementById('f-qual').value;
+  var provincia= document.getElementById('f-provincia').value;
+  var discs    = document.getElementById('f-disc').value.trim().split(',').map(function(d){return d.trim();}).filter(Boolean);
+  var escola   = document.getElementById('f-escola').value;
+
+  if (!nome || !genero || !qual || !provincia) {
+    alert('Preencha os campos obrigatórios: Nome, Género, Qualificação e Província.');
+    return;
+  }
+
+  var btn = document.getElementById('btn-guardar');
+  btn.disabled = true; btn.textContent = 'A registar...';
+
+  fetch(API + '/api/professores', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','x-perfil': __u ? __u.perfil : 'coordenador'},
+    body: JSON.stringify({nome_completo:nome, genero, qualificacao:qual, disciplinas:discs, escola_id:escola||null, provincia})
+  })
+  .then(function(r){return r.json();})
+  .then(function(){fecharModal();carregarProfessores();})
+  .catch(function(){
+    todosProfessores.push({id:Date.now(),nome_completo:nome,genero,qualificacao:qual,disciplinas:discs,provincia,status:'ativo'});
+    actualizarStats();filtrar();fecharModal();
+  })
+  .finally(function(){btn.disabled=false;btn.textContent='Registar Professor';});
+}
+
+function editarProfessor(id) {
+  if (__u && __u.perfil !== 'admin' && __u.perfil !== 'coordenador') {
+    alert('⚠️ Apenas o Coordenador Regional ou Admin MEC podem editar professores.');
+    return;
+  }
+  alert('Funcionalidade de edição em desenvolvimento.');
+}
+
+function eliminarProfessor(id) {
+  if (__u && __u.perfil !== 'admin' && __u.perfil !== 'coordenador') {
+    alert('⚠️ Não tem permissão para eliminar professores.');
+    return;
+  }
+  if (!confirm('Eliminar este professor do sistema?')) return;
+  todosProfessores = todosProfessores.filter(function(p){return p.id!==id;});
+  actualizarStats();filtrar();
+}
+
+function exportarCSV() {
+  var linhas = [['Nome','Género','Qualificação','Disciplinas','Província','Estado']];
+  profFiltrados.forEach(function(p){
+    linhas.push([p.nome_completo,p.genero==='F'?'Feminino':'Masculino',p.qualificacao||'',Array.isArray(p.disciplinas)?p.disciplinas.join(';'):p.disciplinas||'',p.provincia||'',p.status||'']);
+  });
+  var csv = linhas.map(function(l){return l.join(';');}).join('\n');
+  var blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='professores-edumoz.csv'; a.click();
+}
+
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+carregarProfessores();
+</script>
+</body>
+</html>
