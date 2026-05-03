@@ -197,24 +197,61 @@ function setBtn(btn,loading){btn.disabled=loading;btn.textContent=loading?'A ger
 
 function mostrarToast(msg){var t=document.getElementById('toast');t.textContent='📄 '+msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3500);}
 
+// URL do emblema de Mocambique (Wikipedia - dominio publico)
+var EMBLEMA_URL = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8m/Coat_of_arms_of_Mozambique.svg/240px-Coat_of_arms_of_Mozambique.svg.png';
+var emblemaBase64 = null;
+
+// Pre-carrega o emblema uma vez
+function preCarregarEmblema(callback) {
+  if (emblemaBase64) { callback(); return; }
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width; canvas.height = img.height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    try { emblemaBase64 = canvas.toDataURL('image/png'); } catch(e) { emblemaBase64 = null; }
+    callback();
+  };
+  img.onerror = function() { emblemaBase64 = null; callback(); };
+  img.src = EMBLEMA_URL;
+}
+
 function cabecalho(doc,titulo,sub){
   var f=getFiltros();
   var W=doc.internal.pageSize.getWidth();
-  doc.setFillColor(0,75,43);doc.rect(0,0,W,28,'F');
-  doc.setFillColor(252,221,9);doc.rect(0,28,W,4,'F');
-  doc.setFillColor(204,0,0);doc.rect(0,32,W,3,'F');
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
-  doc.text('EduMoz',14,12);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('Ministerio da Educacao e Cultura - Republica de Mocambique',14,20);
-  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-PT'),W-14,12,{align:'right'});
-  doc.text('Ano Lectivo: '+f.ano,W-14,20,{align:'right'});
-  doc.setTextColor(0,75,43);doc.setFont('helvetica','bold');doc.setFontSize(18);
-  doc.text(titulo,14,50);
+
+  // Faixas de cor (bandeira)
+  doc.setFillColor(0,75,43);doc.rect(0,0,W,32,'F');
+  doc.setFillColor(252,221,9);doc.rect(0,32,W,4,'F');
+  doc.setFillColor(204,0,0);doc.rect(0,36,W,3,'F');
+
+  // Emblema (se carregado)
+  if (emblemaBase64) {
+    try { doc.addImage(emblemaBase64,'PNG',W/2-10,2,20,26); } catch(e) {}
+  }
+
+  // Texto do cabecalho
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('REPUBLICA DE MOCAMBIQUE',W/2,12,{align:'center'});
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text('Ministerio da Educacao e Cultura',W/2,19,{align:'center'});
+  doc.setFontSize(8);
+  doc.text('Sistema de Administracao Educacional - EduMoz',W/2,25,{align:'center'});
+
+  // Data e ano (canto direito)
+  doc.setFontSize(8);
+  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-PT'),W-14,10,{align:'right'});
+  doc.text('Ano Lectivo: '+f.ano,W-14,18,{align:'right'});
+
+  // Titulo do relatorio
+  doc.setTextColor(0,75,43);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text(titulo,14,52);
   doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(100,100,100);
-  doc.text(sub+' | Provincia: '+f.provincia+' | Tipo: '+f.tipo,14,58);
-  doc.setDrawColor(0,107,60);doc.setLineWidth(0.5);doc.line(14,62,W-14,62);
-  return 70;
+  doc.text(sub+' | Provincia: '+f.provincia+' | Tipo: '+f.tipo,14,60);
+  doc.setDrawColor(0,107,60);doc.setLineWidth(0.5);doc.line(14,64,W-14,64);
+  return 72;
 }
 
 function rodape(doc){
@@ -245,6 +282,7 @@ function kpisRow(doc,kpis,y){
 
 function gerarRelatorioMatriculas(btn){
   setBtn(btn,true);
+  preCarregarEmblema(function() {
   var f=getFiltros();
   var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var y=cabecalho(doc,'Relatorio de Matriculas','Estatisticas nacionais de matriculas por provincia e genero');
@@ -275,10 +313,12 @@ function gerarRelatorioMatriculas(btn){
   rodape(doc);
   doc.save('EduMoz-Matriculas-'+f.ano+'.pdf');
   setBtn(btn,false);mostrarToast('Relatorio de Matriculas exportado!');
+  });
 }
 
 function gerarRelatorioDesempenho(btn){
   setBtn(btn,true);
+  preCarregarEmblema(function() {
   var f=getFiltros();
   var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var y=cabecalho(doc,'Relatorio de Desempenho Academico','Taxa de aprovacao, reprovacao e comparativo entre provincias');
@@ -301,10 +341,12 @@ function gerarRelatorioDesempenho(btn){
   rodape(doc);
   doc.save('EduMoz-Desempenho-'+f.ano+'.pdf');
   setBtn(btn,false);mostrarToast('Relatorio de Desempenho exportado!');
+  });
 }
 
 function gerarRelatorioEvasao(btn){
   setBtn(btn,true);
+  preCarregarEmblema(function() {
   var f=getFiltros();
   var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var y=cabecalho(doc,'Relatorio de Evasao Escolar','Analise de evasao por provincia, causas e tendencias');
@@ -336,10 +378,12 @@ function gerarRelatorioEvasao(btn){
   rodape(doc);
   doc.save('EduMoz-Evasao-'+f.ano+'.pdf');
   setBtn(btn,false);mostrarToast('Relatorio de Evasao exportado!');
+  });
 }
 
 function gerarRelatorioRH(btn){
   setBtn(btn,true);
+  preCarregarEmblema(function() {
   var f=getFiltros();
   var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var y=cabecalho(doc,'Relatorio de Recursos Humanos','Distribuicao de professores, ratio e necessidades por provincia');
@@ -362,6 +406,7 @@ function gerarRelatorioRH(btn){
   rodape(doc);
   doc.save('EduMoz-RecursosHumanos-'+f.ano+'.pdf');
   setBtn(btn,false);mostrarToast('Relatorio de Recursos Humanos exportado!');
+  });
 }
 </script>
 </body>
